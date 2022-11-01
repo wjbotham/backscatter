@@ -19,10 +19,12 @@ export default class Overlay extends Phaser.Scene
 		let proposedAccel = Phaser.Math.Distance.BetweenPoints(this.playerShip.vector, target);
 		let valid = proposedAccel < Math.min(this.playerShip.maxAccel,this.playerShip.fuel) ? true : false;
 		let textContent =
-			'command: ' + target.x + ',' + target.y + '\n' +
-			'thrust: ' + proposedAccel + ' (' + valid + ')\n' +
-			'velocity: ' + this.playerShip.velocity.x + ',' + this.playerShip.velocity.y + '\n' +
-			'fuel: ' + this.playerShip.fuel;
+			'command: ' + Math.floor(target.x) + ',' + Math.floor(target.y) + '\n' +
+			'thrust: ' + Math.floor(proposedAccel) + ' (' + valid + ')\n' +
+			'velocity: ' + Math.floor(this.playerShip.velocity.x) + ',' + Math.floor(this.playerShip.velocity.y) + '\n' +
+			'fuel: ' + Math.floor(this.playerShip.fuel) + '\n' +
+			'red: ' + this.game.scene.keys['World'].red + '\n' +
+			'blue: ' + this.game.scene.keys['World'].blue
 		this.debugText.setText(textContent);
 	}
 }

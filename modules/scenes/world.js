@@ -22,10 +22,33 @@ export default class World extends Phaser.Scene
 		this.zoomExponent = 0;
 		this.currentShipGraphic = this.add.graphics();
 		this.projectedShipGraphic = this.add.graphics();
-		this.playerShip = new Ship(new Phaser.Geom.Point(300, 150), new Phaser.Geom.Point(20, 20), 50, 1000);
+		this.playerShip = new Ship(
+			new Phaser.Geom.Point(300, 50),
+			new Phaser.Geom.Point(5, 20),
+			50,
+			2000,
+			'Player Ship',
+			0x00FF00,
+			5
+		);
+		this.red = 0;
+		this.blue = 0;
 		this.bodies = [this.playerShip];
+		for (let i = 0; i < 20; i++) {
+			this.bodies.push(
+				new Ship(
+					new Phaser.Geom.Point(Phaser.Math.Between(200,800),Phaser.Math.Between(200,800)),
+					Phaser.Math.RandomXY({x:0,y:0},Phaser.Math.Between(1,30)),
+					0,
+					0,
+					'Rock',
+					Phaser.Math.Between(0,1)==0 ? 0xFF0000 : 0x0000FF,
+					Math.min(Phaser.Math.Between(4,40),Phaser.Math.Between(4,40))
+				)
+			);
+		}
 		
-		this.updateCurrentShipGraphic();
+		this.drawBodies();
 			
 		this.input.on('pointerup', function (pointer) {
 			let target = getWorldCoordinates(pointer);
@@ -49,17 +72,18 @@ export default class World extends Phaser.Scene
 			overlay.updateDebugText(target);
 		}, this);
 		
-		this.input.on('wheel', function(pointer, currentlyOver, dx, dy, dz, event) { 
-			if (dy < 0) {
-				this.zoomExponent += 1;
-			} else if (dy > 0) {
-				this.zoomExponent -= 1;
-			}
-			this.cameras.main.zoom = 1.15**this.zoomExponent;
-		});
-		
 		let scene = this;
 		let camera = this.cameras.main
+		
+		this.input.on('wheel', function(pointer, currentlyOver, dx, dy, dz, event) { 
+		    if (dy < 0) {
+				scene.zoomExponent += 1;
+			} else if (dy > 0) {
+				scene.zoomExponent -= 1;
+			}
+			camera.zoom = 1.15**scene.zoomExponent;
+		});
+		
 		this.input.keyboard.on('keydown', function(event) {
 			switch(event.code) {
 				case 'ArrowLeft':
@@ -101,15 +125,38 @@ export default class World extends Phaser.Scene
 		graphic.strokePath();
 		
 		// ship
-		graphic.lineStyle(2, 0x00FF00, alpha);
+		graphic.lineStyle(2, this.playerShip.color, alpha);
 		graphic.strokeCircle(position.x, position.y, 5);
 	}
 	
-	updateCurrentShipGraphic()
+	drawBody(body)
 	{
-		this.currentShipGraphic.destroy();
-		this.currentShipGraphic = this.add.graphics();
-		this.drawShipGraphic(this.currentShipGraphic, 1, this.playerShip.position, this.playerShip.velocity, Math.min(this.playerShip.maxAccel,this.playerShip.fuel))
+		if (body.graphic) {
+			body.graphic.destroy()
+		}
+		body.graphic = this.add.graphics();
+
+		if (body == this.playerShip) {
+			// thrust options
+			body.graphic.lineStyle(2, 0x888888, 1);
+			body.graphic.strokeCircle(body.position.x + body.velocity.x, body.position.y + body.velocity.y, Math.min(body.maxAccel,body.fuel));
+		} else {
+			// ghost ship
+			body.graphic.lineStyle(2, body.color, 0.3);
+			body.graphic.strokeCircle(body.position.x + body.velocity.x, body.position.y + body.velocity.y, body.radius);
+		}
+		
+		// velocity vector
+		body.graphic.lineStyle(2, 0xFFFFFF, 1);
+		body.graphic.beginPath();
+		body.graphic.moveTo(body.position.x, body.position.y);
+		body.graphic.lineTo(body.position.x + body.velocity.x, body.position.y + body.velocity.y);
+		body.graphic.closePath();
+		body.graphic.strokePath();
+		
+		// ship
+		body.graphic.lineStyle(2, body.color, 1);
+		body.graphic.strokeCircle(body.position.x, body.position.y, body.radius);
 	}
 	
 	updateProjectedShipGraphic(ghost_position, proposedAccel)
@@ -129,10 +176,66 @@ export default class World extends Phaser.Scene
 				body.position = new Phaser.Geom.Point(body.destination.x, body.destination.y);
 			} else {
 				body.position = new Phaser.Geom.Point(body.vector.x, body.vector.y)
-			}
+			}			
 			body.destination = undefined;
-		});
+		}, this);
 		
-		this.updateCurrentShipGraphic(this);
+		this.doCollisions();
+		this.doRemovals();
+		this.drawBodies();
+	}
+	
+	doCollisions()
+	{
+		let collisions = [];
+		for (let i = 0; i < this.bodies.length-1; i++) {
+			for (let j = i+1; j < this.bodies.length; j++) {
+				let bodyi = this.bodies[i];
+				let bodyj = this.bodies[j];
+				let sumRadii = bodyi.radius + bodyj.radius;
+				let distance = Phaser.Math.Distance.BetweenPoints(bodyi.position, bodyj.position);
+				if (distance <= sumRadii) {
+					collisions.push([bodyi,bodyj]);
+				}
+			}
+		}
+		collisions.forEach(collision => this.handleCollision(collision[0],collision[1]));
+	}
+	
+	doRemovals()
+	{
+		this.bodies.forEach(function(body) {
+			if (body.remove) {
+				body.graphic.destroy();
+			}
+		});
+		this.bodies = this.bodies.filter(body => !body.remove);
+	}
+	
+	handleCollision(body1,body2)
+	{
+		// rock/ship collision
+		if ((body1.name == "Player Ship" || body2.name == "Player Ship") && (body1.name == "Rock" || body2.name == "Rock")) {
+			let rock = body1.name == "Rock" ? body1 : body2;
+			let playerShip = body1.name == "Player Ship" ? body1 : body2;
+			rock.remove = true;
+			if (rock.color == 0xFF0000) {
+				this.red += 1;
+			} else if (rock.color == 0x0000FF) {
+				this.blue += 1;
+			}
+		}
+		// rock/rock collision
+		if (body1.name == "Rock" && body2.name == "Rock") {
+			console.log("no rock/rock collision logic implemented");
+		}
+	}
+	
+	
+	drawBodies()
+	{
+		this.bodies.forEach(function (body) {
+			this.drawBody(body);
+		}, this);
 	}
 }
