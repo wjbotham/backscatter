@@ -1,11 +1,18 @@
 import Ship from "./modules/ship.js";
 
-class DebugText extends Phaser.Scene
+function getWorldCoordinates(pointer) {
+	return {
+		x: pointer.worldX,
+		y: pointer.worldY
+	};
+};
+
+class Overlay extends Phaser.Scene
 {
 	constructor ()
 	{
 		super({
-			key: "Text",
+			key: 'Overlay',
 			active: true
 		});
 	}
@@ -13,17 +20,18 @@ class DebugText extends Phaser.Scene
 	create ()
 	{
 		this.debugText = this.add.text(10,10, 'Waiting for click');
+		this.playerShip = this.game.scene.keys['World'].playerShip;
 	}
 	
-	updateDebugText (ship, target)
+	updateDebugText (target)
 	{
-		let proposedAccel = ship.vectorDistance(target)
-		let valid = proposedAccel < Math.min(ship.maxAccel,ship.fuel) ? true : false;
+		let proposedAccel = Phaser.Math.Distance.BetweenPoints(this.playerShip.vector, target);
+		let valid = proposedAccel < Math.min(this.playerShip.maxAccel,this.playerShip.fuel) ? true : false;
 		let textContent =
 			'command: ' + target.x + ',' + target.y + '\n' +
-			'thrust: ' + ship.vectorDistance(target) + ' (' + valid + ')\n' +
-			'velocity: ' + ship.velocity.x + ',' + ship.velocity.y + '\n' +
-			'fuel: ' + ship.fuel;
+			'thrust: ' + proposedAccel + ' (' + valid + ')\n' +
+			'velocity: ' + this.playerShip.velocity.x + ',' + this.playerShip.velocity.y + '\n' +
+			'fuel: ' + this.playerShip.fuel;
 		this.debugText.setText(textContent);
 	}
 }
@@ -33,80 +41,42 @@ class Backscatter extends Phaser.Scene
 	constructor ()
 	{	
 		super({
-			key: "SpaceMap"
+			key: 'World'
 		});
 	}
+	
 	create ()
 	{
-		var debugTextScene = this.game.scene.keys['Text'];
+		var debugTextScene = this.game.scene.keys['Overlay'];
 		var camera = this.cameras.main
 		var zoomExponent = 0;
-		var currentShipGraphic = this.add.graphics();
-		var projectedShipGraphic = this.add.graphics();
-		var ship = new Ship(new Phaser.Geom.Point(300, 150), new Phaser.Geom.Point(20, 20), 50, 1000);
+		this.currentShipGraphic = this.add.graphics();
+		this.projectedShipGraphic = this.add.graphics();
+		this.playerShip = new Ship(new Phaser.Geom.Point(300, 150), new Phaser.Geom.Point(20, 20), 50, 1000);
+		this.bodies = [this.playerShip];
 		
-		function drawCurrentShipGraphic(scene) {
-			currentShipGraphic = scene.add.graphics();
-			drawShipGraphic(currentShipGraphic, 1, ship.position, ship.velocity, Math.min(ship.maxAccel,ship.fuel))
-		};
-		
-		function drawProjectedShipGraphic(scene, ghost_position, proposedAccel) {
-			projectedShipGraphic = scene.add.graphics();
-			let ghost_velocity = new Phaser.Geom.Point(ghost_position.x - ship.position.x, ghost_position.y - ship.position.y);
-			let ghost_fuel = ship.fuel-proposedAccel;
-			drawShipGraphic(projectedShipGraphic, 0.4, ghost_position, ghost_velocity, Math.min(ship.maxAccel,ghost_fuel));
-		};
-		
-		function drawShipGraphic(graphic, alpha, position, velocity, maxAccel) {
-			let destination = { x: position.x + velocity.x, y: position.y + velocity.y };
-			// thrust options
-			graphic.lineStyle(2, 0x888888, alpha);
-			graphic.strokeCircle(destination.x, destination.y, maxAccel);
-
-			// velocity vector
-			graphic.lineStyle(2, 0xFFFFFF, alpha);
-			graphic.beginPath();
-			graphic.moveTo(position.x, position.y);
-			graphic.lineTo(destination.x, destination.y);
-			graphic.closePath();
-			graphic.strokePath();
-			
-			// ship
-			graphic.lineStyle(2, 0x00FF00, alpha);
-			graphic.strokeCircle(position.x, position.y, 5);
-		};
-		
-		function getWorldCoordinates(pointer) {
-			return {
-				x: pointer.worldX,
-				y: pointer.worldY
-			};
-		};
-		
-		drawCurrentShipGraphic(this);
+		this.updateCurrentShipGraphic();
 			
 		this.input.on('pointerup', function (pointer) {
 			let target = getWorldCoordinates(pointer);
 			
-			var proposedAccel = ship.vectorDistance(target);
-			if (proposedAccel <= Math.min(ship.maxAccel,ship.fuel)) {
-				ship.velocity = new Phaser.Geom.Point(target.x - ship.position.x, target.y - ship.position.y);
-				ship.position = new Phaser.Geom.Point(target.x, target.y);
-				ship.spendFuel(proposedAccel);
+			var proposedAccel = Phaser.Math.Distance.BetweenPoints(this.playerShip.vector, target);
+			if (proposedAccel <= Math.min(this.playerShip.maxAccel,this.playerShip.fuel)) {
+				this.playerShip.destination = target;
+				this.advanceTurn();
 			}
-			currentShipGraphic.destroy();
-			drawCurrentShipGraphic(this);
-			debugTextScene.updateDebugText(ship, target);
+			debugTextScene.updateDebugText(target);
 		}, this);
 		
 		this.input.on('pointermove', function(pointer) {
 			let target = getWorldCoordinates(pointer);
-			var proposedAccel = ship.vectorDistance(target);
-			projectedShipGraphic.destroy();
-			if (proposedAccel <= Math.min(ship.maxAccel,ship.fuel)) {
-				drawProjectedShipGraphic(this, target, proposedAccel);
+			
+			var proposedAccel = Phaser.Math.Distance.BetweenPoints(this.playerShip.vector, target);
+			this.projectedShipGraphic.destroy();
+			if (proposedAccel <= Math.min(this.playerShip.maxAccel,this.playerShip.fuel)) {
+				this.updateProjectedShipGraphic(target, proposedAccel);
 			}
-			debugTextScene.updateDebugText(ship, target);
+			debugTextScene.updateDebugText(target);
 		}, this);
 		
 		this.input.on('wheel', function(pointer, currentlyOver, dx, dy, dz, event) { 
@@ -118,21 +88,81 @@ class Backscatter extends Phaser.Scene
 			this.cameras.main.zoom = 1.15**zoomExponent;
 		});
 		
+		let scene = this;
 		this.input.keyboard.on('keydown', function(event) {
-			console.log(event.code);
-			if (event.code == 'ArrowLeft') {
-				camera.scrollX -= (1/camera.zoom) * 20;
-			}
-			if (event.code == 'ArrowRight') {
-				camera.scrollX += (1/camera.zoom) * 20;
-			}
-			if (event.code == 'ArrowUp') {
-				camera.scrollY -= (1/camera.zoom) * 20;
-			}
-			if (event.code == 'ArrowDown') {
-				camera.scrollY += (1/camera.zoom) * 20;
+			switch(event.code) {
+				case 'ArrowLeft':
+				case 'KeyA':
+					camera.scrollX -= 30/camera.zoom;
+					break;
+				case 'ArrowUp':
+				case 'KeyW':
+					camera.scrollY -= 30/camera.zoom;
+					break;
+				case 'ArrowRight':
+				case 'KeyD':
+					camera.scrollX += 30/camera.zoom;
+					break;
+				case 'ArrowDown':
+				case 'KeyS':
+					camera.scrollX -= 30/camera.zoom;
+					break;
+				case 'Space':
+					scene.advanceTurn();
+					break;
 			}
 		});
+	}
+	
+	drawShipGraphic(graphic, alpha, position, velocity, maxAccel)
+	{
+		let destination = { x: position.x + velocity.x, y: position.y + velocity.y };
+		// thrust options
+		graphic.lineStyle(2, 0x888888, alpha);
+		graphic.strokeCircle(destination.x, destination.y, maxAccel);
+
+		// velocity vector
+		graphic.lineStyle(2, 0xFFFFFF, alpha);
+		graphic.beginPath();
+		graphic.moveTo(position.x, position.y);
+		graphic.lineTo(destination.x, destination.y);
+		graphic.closePath();
+		graphic.strokePath();
+		
+		// ship
+		graphic.lineStyle(2, 0x00FF00, alpha);
+		graphic.strokeCircle(position.x, position.y, 5);
+	}
+	
+	updateCurrentShipGraphic()
+	{
+		this.currentShipGraphic.destroy();
+		this.currentShipGraphic = this.add.graphics();
+		this.drawShipGraphic(this.currentShipGraphic, 1, this.playerShip.position, this.playerShip.velocity, Math.min(this.playerShip.maxAccel,this.playerShip.fuel))
+	}
+	
+	updateProjectedShipGraphic(ghost_position, proposedAccel)
+	{
+		this.projectedShipGraphic = this.add.graphics();
+		let ghost_velocity = new Phaser.Geom.Point(ghost_position.x - this.playerShip.position.x, ghost_position.y - this.playerShip.position.y);
+		let ghost_fuel = this.playerShip.fuel-proposedAccel;
+		this.drawShipGraphic(this.projectedShipGraphic, 0.4, ghost_position, ghost_velocity, Math.min(this.playerShip.maxAccel,ghost_fuel));
+	}
+	
+	advanceTurn()
+	{
+		this.bodies.forEach(function (body) {
+			if (body.destination) {
+				body.spendFuel(Phaser.Math.Distance.BetweenPoints(body.vector, body.destination));
+				body.velocity = new Phaser.Geom.Point(body.destination.x - body.position.x, body.destination.y - body.position.y);
+				body.position = new Phaser.Geom.Point(body.destination.x, body.destination.y);
+			} else {
+				body.position = new Phaser.Geom.Point(body.vector.x, body.vector.y)
+			}
+			body.destination = undefined;
+		});
+		
+		this.updateCurrentShipGraphic(this);
 	}
 }
 
@@ -141,7 +171,7 @@ var config = {
 	width: 800,
 	height: 800,
 	backgroundColor: '#000',
-	scene: [ Backscatter, DebugText ]
+	scene: [ Backscatter, Overlay ]
 };
 
 const game = new Phaser.Game(config);
