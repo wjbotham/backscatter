@@ -18,9 +18,8 @@ export default class World extends Phaser.Scene
 	
 	create ()
 	{
-		var debugTextScene = this.game.scene.keys['Overlay'];
-		var camera = this.cameras.main
-		var zoomExponent = 0;
+		var overlay = this.game.scene.keys['Overlay'];
+		this.zoomExponent = 0;
 		this.currentShipGraphic = this.add.graphics();
 		this.projectedShipGraphic = this.add.graphics();
 		this.playerShip = new Ship(new Phaser.Geom.Point(300, 150), new Phaser.Geom.Point(20, 20), 50, 1000);
@@ -36,7 +35,7 @@ export default class World extends Phaser.Scene
 				this.playerShip.destination = target;
 				this.advanceTurn();
 			}
-			debugTextScene.updateDebugText(target);
+			overlay.updateDebugText(target);
 		}, this);
 		
 		this.input.on('pointermove', function(pointer) {
@@ -47,19 +46,20 @@ export default class World extends Phaser.Scene
 			if (proposedAccel <= Math.min(this.playerShip.maxAccel,this.playerShip.fuel)) {
 				this.updateProjectedShipGraphic(target, proposedAccel);
 			}
-			debugTextScene.updateDebugText(target);
+			overlay.updateDebugText(target);
 		}, this);
 		
 		this.input.on('wheel', function(pointer, currentlyOver, dx, dy, dz, event) { 
 			if (dy < 0) {
-				zoomExponent += 1;
+				this.zoomExponent += 1;
 			} else if (dy > 0) {
-				zoomExponent -= 1;
+				this.zoomExponent -= 1;
 			}
-			this.cameras.main.zoom = 1.15**zoomExponent;
+			this.cameras.main.zoom = 1.15**this.zoomExponent;
 		});
 		
 		let scene = this;
+		let camera = this.cameras.main
 		this.input.keyboard.on('keydown', function(event) {
 			switch(event.code) {
 				case 'ArrowLeft':
@@ -76,7 +76,7 @@ export default class World extends Phaser.Scene
 					break;
 				case 'ArrowDown':
 				case 'KeyS':
-					camera.scrollX -= 30/camera.zoom;
+					camera.scrollY += 30/camera.zoom;
 					break;
 				case 'Space':
 					scene.advanceTurn();
