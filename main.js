@@ -1,5 +1,5 @@
-import Overlay from '/modules/scenes/overlay.js'
-import World from '/modules/scenes/world.js'
+import Overlay from './modules/scenes/overlay.js'
+import World from './modules/scenes/world.js'
 
 var config = {
 	type: Phaser.AUTO,

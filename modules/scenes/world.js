@@ -1,4 +1,4 @@
-import Ship from '/modules/ship.js';
+import Ship from '../../modules/ship.js';
 
 function getWorldCoordinates(pointer) {
 	return {
