@@ -96,7 +96,6 @@ class Backscatter extends Phaser.Scene
 			}
 			currentShipGraphic.destroy();
 			drawCurrentShipGraphic(this);
-			//updateDebugText(target);
 			debugTextScene.updateDebugText(ship, target);
 		}, this);
 		
@@ -107,7 +106,6 @@ class Backscatter extends Phaser.Scene
 			if (proposedAccel <= Math.min(ship.maxAccel,ship.fuel)) {
 				drawProjectedShipGraphic(this, target, proposedAccel);
 			}
-			//updateDebugText(target);
 			debugTextScene.updateDebugText(ship, target);
 		}, this);
 		
@@ -135,20 +133,6 @@ class Backscatter extends Phaser.Scene
 				camera.scrollY += (1/camera.zoom) * 20;
 			}
 		});
-		/*
-		this.input.keyboard.on('keydown-LEFT', function(event) {
-			camera.scrollX -= (1/camera.zoom) * 20;
-		});
-		this.input.keyboard.on('keydown-RIGHT', function(event) {
-			camera.scrollX += (1/camera.zoom) * 20;
-		});
-		this.input.keyboard.on('keydown-UP', function(event) {
-			camera.scrollY -= (1/camera.zoom) * 20;
-		});
-		this.input.keyboard.on('keydown-DOWN', function(event) {
-			camera.scrollY += (1/camera.zoom) * 20;
-		});
-		*/
 	}
 }
 
