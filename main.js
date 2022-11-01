@@ -15,13 +15,13 @@ class DebugText extends Phaser.Scene
 		this.debugText = this.add.text(10,10, 'Waiting for click');
 	}
 	
-	updateDebugText (ship, pointer)
+	updateDebugText (ship, target)
 	{
-		let proposedAccel = ship.vectorDistance(pointer)
+		let proposedAccel = ship.vectorDistance(target)
 		let valid = proposedAccel < Math.min(ship.maxAccel,ship.fuel) ? true : false;
 		let textContent =
-			'command: ' + pointer.x + ',' + pointer.y + '\n' +
-			'thrust: ' + ship.vectorDistance(pointer) + ' (' + valid + ')\n' +
+			'command: ' + target.x + ',' + target.y + '\n' +
+			'thrust: ' + ship.vectorDistance(target) + ' (' + valid + ')\n' +
 			'velocity: ' + ship.velocity.x + ',' + ship.velocity.y + '\n' +
 			'fuel: ' + ship.fuel;
 		this.debugText.setText(textContent);
