@@ -1,17 +1,49 @@
 import Ship from "./modules/ship.js";
 
+class DebugText extends Phaser.Scene
+{
+	constructor ()
+	{
+		super({
+			key: "Text",
+			active: true
+		});
+	}
+	
+	create ()
+	{
+		this.debugText = this.add.text(10,10, 'Waiting for click');
+	}
+	
+	updateDebugText (ship, pointer)
+	{
+		let proposedAccel = ship.vectorDistance(pointer)
+		let valid = proposedAccel < Math.min(ship.maxAccel,ship.fuel) ? true : false;
+		let textContent =
+			'command: ' + pointer.x + ',' + pointer.y + '\n' +
+			'thrust: ' + ship.vectorDistance(pointer) + ' (' + valid + ')\n' +
+			'velocity: ' + ship.velocity.x + ',' + ship.velocity.y + '\n' +
+			'fuel: ' + ship.fuel;
+		this.debugText.setText(textContent);
+	}
+}
+
 class Backscatter extends Phaser.Scene
 {
 	constructor ()
 	{	
-		super();
+		super({
+			key: "SpaceMap"
+		});
 	}
 	create ()
 	{
-		var debugText = this.add.text(10,10, 'Waiting for click');
+		var debugTextScene = this.game.scene.keys['Text'];
+		var camera = this.cameras.main
+		var zoomExponent = 0;
 		var currentShipGraphic = this.add.graphics();
 		var projectedShipGraphic = this.add.graphics();
-		var ship = new Ship(new Phaser.Geom.Point(200, 200), new Phaser.Geom.Point(20, 20), 50, 1000);
+		var ship = new Ship(new Phaser.Geom.Point(300, 150), new Phaser.Geom.Point(20, 20), 50, 1000);
 		
 		function drawCurrentShipGraphic(scene) {
 			currentShipGraphic = scene.add.graphics();
@@ -44,48 +76,88 @@ class Backscatter extends Phaser.Scene
 			graphic.strokeCircle(position.x, position.y, 5);
 		};
 		
-		function updateDebugText(pointer) {
-			let proposedAccel = ship.vectorDistance(pointer)
-			let valid = proposedAccel < Math.min(ship.maxAccel,ship.fuel) ? true : false;
-			let textContent =
-				'command: ' + pointer.x + ',' + pointer.y + '\n' +
-				'thrust: ' + ship.vectorDistance(pointer) + ' (' + valid + ')\n' +
-				'velocity: ' + ship.velocity.x + ',' + ship.velocity.y + '\n' +
-				'fuel: ' + ship.fuel;
-			debugText.setText(textContent);
+		function getWorldCoordinates(pointer) {
+			return {
+				x: pointer.worldX,
+				y: pointer.worldY
+			};
 		};
 		
 		drawCurrentShipGraphic(this);
 			
 		this.input.on('pointerup', function (pointer) {
-			var proposedAccel = ship.vectorDistance(pointer);
+			let target = getWorldCoordinates(pointer);
+			
+			var proposedAccel = ship.vectorDistance(target);
 			if (proposedAccel <= Math.min(ship.maxAccel,ship.fuel)) {
-				ship.velocity = new Phaser.Geom.Point(pointer.x - ship.position.x, pointer.y - ship.position.y);
-				ship.position = new Phaser.Geom.Point(pointer.x, pointer.y);
+				ship.velocity = new Phaser.Geom.Point(target.x - ship.position.x, target.y - ship.position.y);
+				ship.position = new Phaser.Geom.Point(target.x, target.y);
 				ship.spendFuel(proposedAccel);
 			}
 			currentShipGraphic.destroy();
 			drawCurrentShipGraphic(this);
-			updateDebugText(pointer);
+			//updateDebugText(target);
+			debugTextScene.updateDebugText(ship, target);
 		}, this);
 		
 		this.input.on('pointermove', function(pointer) {
-			var proposedAccel = ship.vectorDistance(pointer);
+			let target = getWorldCoordinates(pointer);
+			var proposedAccel = ship.vectorDistance(target);
 			projectedShipGraphic.destroy();
 			if (proposedAccel <= Math.min(ship.maxAccel,ship.fuel)) {
-				drawProjectedShipGraphic(this, pointer, proposedAccel);
+				drawProjectedShipGraphic(this, target, proposedAccel);
 			}
-			updateDebugText(pointer);
+			//updateDebugText(target);
+			debugTextScene.updateDebugText(ship, target);
 		}, this);
+		
+		this.input.on('wheel', function(pointer, currentlyOver, dx, dy, dz, event) { 
+			if (dy < 0) {
+				zoomExponent += 1;
+			} else if (dy > 0) {
+				zoomExponent -= 1;
+			}
+			this.cameras.main.zoom = 1.15**zoomExponent;
+		});
+		
+		this.input.keyboard.on('keydown', function(event) {
+			console.log(event.code);
+			if (event.code == 'ArrowLeft') {
+				camera.scrollX -= (1/camera.zoom) * 20;
+			}
+			if (event.code == 'ArrowRight') {
+				camera.scrollX += (1/camera.zoom) * 20;
+			}
+			if (event.code == 'ArrowUp') {
+				camera.scrollY -= (1/camera.zoom) * 20;
+			}
+			if (event.code == 'ArrowDown') {
+				camera.scrollY += (1/camera.zoom) * 20;
+			}
+		});
+		/*
+		this.input.keyboard.on('keydown-LEFT', function(event) {
+			camera.scrollX -= (1/camera.zoom) * 20;
+		});
+		this.input.keyboard.on('keydown-RIGHT', function(event) {
+			camera.scrollX += (1/camera.zoom) * 20;
+		});
+		this.input.keyboard.on('keydown-UP', function(event) {
+			camera.scrollY -= (1/camera.zoom) * 20;
+		});
+		this.input.keyboard.on('keydown-DOWN', function(event) {
+			camera.scrollY += (1/camera.zoom) * 20;
+		});
+		*/
 	}
 }
 
 var config = {
 	type: Phaser.AUTO,
 	width: 800,
-	height: 600,
+	height: 800,
 	backgroundColor: '#000',
-	scene: [ Backscatter ]
+	scene: [ Backscatter, DebugText ]
 };
 
 const game = new Phaser.Game(config);
