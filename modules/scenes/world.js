@@ -110,19 +110,19 @@ export default class World extends Phaser.Scene
 			switch(event.code) {
 				case 'ArrowLeft':
 				case 'KeyA':
-					this.cameras.main.scrollX -= 30/camera.zoom;
+					this.cameras.main.scrollX -= 30/this.cameras.main.zoom;
 					break;
 				case 'ArrowUp':
 				case 'KeyW':
-					this.cameras.main.scrollY -= 30/camera.zoom;
+					this.cameras.main.scrollY -= 30/this.cameras.main.zoom;
 					break;
 				case 'ArrowRight':
 				case 'KeyD':
-					this.cameras.main.scrollX += 30/camera.zoom;
+					this.cameras.main.scrollX += 30/this.cameras.main.zoom;
 					break;
 				case 'ArrowDown':
 				case 'KeyS':
-					this.cameras.main.scrollY += 30/camera.zoom;
+					this.cameras.main.scrollY += 30/this.cameras.main.zoom;
 					break;
 				case 'Space':
 					this.advanceTurn();
