@@ -1,6 +1,3 @@
-import Ship from '../../modules/ship.js';
-import Body from '../../modules/body.js';
-
 function getWorldCoordinates(pointer) {
 	return {
 		x: pointer.worldX,
@@ -27,41 +24,22 @@ function getClosestPointWithinCircle(circleCenter, radius, pointOutside) {
 
 export default class World extends Phaser.Scene
 {
-	constructor ()
+	constructor (config)
 	{	
 		super({
 			key: 'World'
 		});
+		this.zoomExponent = 0;
+		this.red = 0;
+		this.blue = 0;
+		this.playerShip = config.playerShip;
+		this.bodies = [config.playerShip].concat(config.bodies);
 	}
 	
 	create ()
 	{
 		var overlay = this.game.scene.keys['Overlay'];
-		this.zoomExponent = 0;
 		this.projectedShipGraphic = this.add.graphics();
-		this.playerShip = new Ship(
-			new Phaser.Geom.Point(300, 50),
-			new Phaser.Geom.Point(5, 20),
-			50,
-			2000,
-			'Player Ship',
-			0x00FF00,
-			5
-		);
-		this.red = 0;
-		this.blue = 0;
-		this.bodies = [this.playerShip];
-		for (let i = 0; i < 20; i++) {
-			this.bodies.push(
-				new Body(
-					new Phaser.Geom.Point(Phaser.Math.Between(200,800),Phaser.Math.Between(200,800)),
-					Phaser.Math.RandomXY({x:0,y:0},Phaser.Math.Between(1,30)),
-					'Rock',
-					Phaser.Math.Between(0,1)==0 ? 0xFF0000 : 0x0000FF,
-					Math.min(Phaser.Math.Between(4,40),Phaser.Math.Between(4,40))
-				)
-			);
-		}
 		
 		this.drawBodies();
 			
