@@ -1,4 +1,5 @@
 import Ship from '../../modules/ship.js';
+import Body from '../../modules/body.js';
 
 function getWorldCoordinates(pointer) {
 	return {
@@ -52,11 +53,9 @@ export default class World extends Phaser.Scene
 		this.bodies = [this.playerShip];
 		for (let i = 0; i < 20; i++) {
 			this.bodies.push(
-				new Ship(
+				new Body(
 					new Phaser.Geom.Point(Phaser.Math.Between(200,800),Phaser.Math.Between(200,800)),
 					Phaser.Math.RandomXY({x:0,y:0},Phaser.Math.Between(1,30)),
-					0,
-					0,
 					'Rock',
 					Phaser.Math.Between(0,1)==0 ? 0xFF0000 : 0x0000FF,
 					Math.min(Phaser.Math.Between(4,40),Phaser.Math.Between(4,40))
@@ -98,41 +97,38 @@ export default class World extends Phaser.Scene
 			overlay.updateDebugText(target);
 		}, this);
 		
-		let scene = this;
-		let camera = this.cameras.main
-		
 		this.input.on('wheel', function(pointer, currentlyOver, dx, dy, dz, event) { 
 		    if (dy < 0) {
-				scene.zoomExponent += 1;
+				this.zoomExponent += 1;
 			} else if (dy > 0) {
-				scene.zoomExponent -= 1;
+				this.zoomExponent -= 1;
 			}
-			camera.zoom = 1.15**scene.zoomExponent;
-		});
+			this.cameras.main.zoom = 1.15**this.zoomExponent;
+		}, this);
 		
 		this.input.keyboard.on('keydown', function(event) {
 			switch(event.code) {
 				case 'ArrowLeft':
 				case 'KeyA':
-					camera.scrollX -= 30/camera.zoom;
+					this.cameras.main.scrollX -= 30/camera.zoom;
 					break;
 				case 'ArrowUp':
 				case 'KeyW':
-					camera.scrollY -= 30/camera.zoom;
+					this.cameras.main.scrollY -= 30/camera.zoom;
 					break;
 				case 'ArrowRight':
 				case 'KeyD':
-					camera.scrollX += 30/camera.zoom;
+					this.cameras.main.scrollX += 30/camera.zoom;
 					break;
 				case 'ArrowDown':
 				case 'KeyS':
-					camera.scrollY += 30/camera.zoom;
+					this.cameras.main.scrollY += 30/camera.zoom;
 					break;
 				case 'Space':
-					scene.advanceTurn();
+					this.advanceTurn();
 					break;
 			}
-		});
+		}, this);
 	}
 	
 	drawShipGraphic(graphic, alpha, position, velocity, maxAccel)
