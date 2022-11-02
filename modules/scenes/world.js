@@ -53,20 +53,47 @@ export default class World extends Phaser.Scene
 		this.input.on('pointerup', function (pointer) {
 			let target = getWorldCoordinates(pointer);
 			
+			let maxLength = Math.min(this.playerShip.maxAccel,this.playerShip.fuel);
+			if (Phaser.Math.Distance.BetweenPoints(this.playerShip.vector, target) < maxLength*2) {
+				target = getClosestPointWithinCircle(this.playerShip.vector, maxLength, target);
+			}
+			
 			var proposedAccel = Phaser.Math.Distance.BetweenPoints(this.playerShip.vector, target);
-			if (proposedAccel <= Math.min(this.playerShip.maxAccel,this.playerShip.fuel)) {
+			if (proposedAccel <= maxLength) {
 				this.playerShip.destination = target;
 				this.advanceTurn();
 			}
 			overlay.updateDebugText(target);
 		}, this);
 		
+		function getClosestPointWithinCircle(circleCenter, radius, pointOutside) {
+			if (Phaser.Math.Distance.BetweenPoints(circleCenter, pointOutside) <= radius) {
+				return pointOutside;
+			} else {
+				let diffVector = new Phaser.Math.Vector2(pointOutside.x-circleCenter.x, pointOutside.y-circleCenter.y);
+				
+				let prospectiveInsidePoint = new Phaser.Geom.Point(circleCenter.x + diffVector.x, circleCenter.y + diffVector.y)
+				let excess = Phaser.Math.Distance.BetweenPoints(circleCenter, prospectiveInsidePoint) - radius;
+				do {
+					diffVector.setLength(diffVector.length() - Math.max(1,excess));
+					prospectiveInsidePoint = new Phaser.Geom.Point(circleCenter.x + diffVector.x, circleCenter.y + diffVector.y);
+					excess = Phaser.Math.Distance.BetweenPoints(circleCenter, prospectiveInsidePoint) - radius;
+				} while (excess > 0);
+				return prospectiveInsidePoint;
+			}
+		}
+		
 		this.input.on('pointermove', function(pointer) {
 			let target = getWorldCoordinates(pointer);
 			
+			let maxLength = Math.min(this.playerShip.maxAccel,this.playerShip.fuel);
+			if (Phaser.Math.Distance.BetweenPoints(this.playerShip.vector, target) < maxLength*2) {
+				target = getClosestPointWithinCircle(this.playerShip.vector, maxLength, target);
+			}
+			
 			var proposedAccel = Phaser.Math.Distance.BetweenPoints(this.playerShip.vector, target);
 			this.projectedShipGraphic.destroy();
-			if (proposedAccel <= Math.min(this.playerShip.maxAccel,this.playerShip.fuel)) {
+			if (proposedAccel <= maxLength) {
 				this.updateProjectedShipGraphic(target, proposedAccel);
 			}
 			overlay.updateDebugText(target);
