@@ -37,7 +37,6 @@ export default class World extends Phaser.Scene
 	{
 		var overlay = this.game.scene.keys['Overlay'];
 		this.zoomExponent = 0;
-		this.currentShipGraphic = this.add.graphics();
 		this.projectedShipGraphic = this.add.graphics();
 		this.playerShip = new Ship(
 			new Phaser.Geom.Point(300, 50),
