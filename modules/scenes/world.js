@@ -6,6 +6,23 @@ function getWorldCoordinates(pointer) {
 		y: pointer.worldY
 	};
 };
+		
+function getClosestPointWithinCircle(circleCenter, radius, pointOutside) {
+	if (Phaser.Math.Distance.BetweenPoints(circleCenter, pointOutside) <= radius) {
+		return pointOutside;
+	} else {
+		let diffVector = new Phaser.Math.Vector2(pointOutside.x-circleCenter.x, pointOutside.y-circleCenter.y);
+		
+		let prospectiveInsidePoint = new Phaser.Geom.Point(circleCenter.x + diffVector.x, circleCenter.y + diffVector.y)
+		let excess = Phaser.Math.Distance.BetweenPoints(circleCenter, prospectiveInsidePoint) - radius;
+		do {
+			diffVector.setLength(diffVector.length() - Math.max(1,excess));
+			prospectiveInsidePoint = new Phaser.Geom.Point(circleCenter.x + diffVector.x, circleCenter.y + diffVector.y);
+			excess = Phaser.Math.Distance.BetweenPoints(circleCenter, prospectiveInsidePoint) - radius;
+		} while (excess > 0);
+		return prospectiveInsidePoint;
+	}
+}
 
 export default class World extends Phaser.Scene
 {
@@ -65,23 +82,6 @@ export default class World extends Phaser.Scene
 			}
 			overlay.updateDebugText(target);
 		}, this);
-		
-		function getClosestPointWithinCircle(circleCenter, radius, pointOutside) {
-			if (Phaser.Math.Distance.BetweenPoints(circleCenter, pointOutside) <= radius) {
-				return pointOutside;
-			} else {
-				let diffVector = new Phaser.Math.Vector2(pointOutside.x-circleCenter.x, pointOutside.y-circleCenter.y);
-				
-				let prospectiveInsidePoint = new Phaser.Geom.Point(circleCenter.x + diffVector.x, circleCenter.y + diffVector.y)
-				let excess = Phaser.Math.Distance.BetweenPoints(circleCenter, prospectiveInsidePoint) - radius;
-				do {
-					diffVector.setLength(diffVector.length() - Math.max(1,excess));
-					prospectiveInsidePoint = new Phaser.Geom.Point(circleCenter.x + diffVector.x, circleCenter.y + diffVector.y);
-					excess = Phaser.Math.Distance.BetweenPoints(circleCenter, prospectiveInsidePoint) - radius;
-				} while (excess > 0);
-				return prospectiveInsidePoint;
-			}
-		}
 		
 		this.input.on('pointermove', function(pointer) {
 			let target = getWorldCoordinates(pointer);
