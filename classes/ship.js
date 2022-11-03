@@ -1,4 +1,4 @@
-import Body from '../../modules/body.js';
+import Body from './body.js';
 
 export default class Ship extends Body {
 	constructor(position, velocity, maxAccel, fuel, name, color, radius) {

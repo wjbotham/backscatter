@@ -1,5 +1,5 @@
-import Ship from '../../modules/ship.js';
-import Body from '../../modules/body.js';
+import Ship from '../classes/ship.js';
+import Body from '../classes/body.js';
 
 let playerShip = new Ship(
 	new Phaser.Geom.Point(300, 50),
