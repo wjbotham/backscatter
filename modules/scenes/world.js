@@ -29,11 +29,13 @@ export default class World extends Phaser.Scene
 		super({
 			key: 'World'
 		});
+		console.log(config);
 		this.zoomExponent = 0;
 		this.red = 0;
 		this.blue = 0;
 		this.playerShip = config.playerShip;
 		this.bodies = [config.playerShip].concat(config.bodies);
+		this.collisionRules = config.collisionRules;
 	}
 	
 	create ()
@@ -214,23 +216,21 @@ export default class World extends Phaser.Scene
 	
 	handleCollision(body1,body2)
 	{
-		// rock/ship collision
-		if ((body1.name == "Player Ship" || body2.name == "Player Ship") && (body1.name == "Rock" || body2.name == "Rock")) {
-			let rock = body1.name == "Rock" ? body1 : body2;
-			let playerShip = body1.name == "Player Ship" ? body1 : body2;
-			rock.remove = true;
-			if (rock.color == 0xFF0000) {
-				this.red += 1;
-			} else if (rock.color == 0x0000FF) {
-				this.blue += 1;
+		this.collisionRules.forEach(function(rule) {
+			if (rule.subject1Name == rule.subject2Name) {
+				if (body1.name == body2.name && body1.name == rule.subject1Name) {
+					rule.effect(this,body1,body2);
+				}
+			} else {
+				if ([body1.name,body2.name].some(name => name == rule.subject1Name) &&
+					[body1.name,body2.name].some(name => name == rule.subject2Name)) {
+					let subject1 = body1.name == rule.subject1Name ? body1 : body2;
+					let subject2 = body1.name == rule.subject2Name ? body1 : body2;
+					rule.effect(this,subject1,subject2);
+				}
 			}
-		}
-		// rock/rock collision
-		if (body1.name == "Rock" && body2.name == "Rock") {
-			console.log("no rock/rock collision logic implemented");
-		}
+		}, this);
 	}
-	
 	
 	drawBodies()
 	{
