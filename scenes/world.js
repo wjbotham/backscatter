@@ -142,7 +142,7 @@ export default class World extends Phaser.Scene
 			body.graphic.strokeCircle(body.position.x + body.velocity.x, body.position.y + body.velocity.y, Math.min(body.maxAccel,body.fuel));
 		} else if (body.velocity.x != 0 || body.velocity.y != 0) {
 			// ghost ship
-			body.graphic.fillStyle(body.appearance.fillcolor, body.appearance.fillAlpha * 0.3);
+			body.graphic.fillStyle(body.appearance.fillColor, body.appearance.fillAlpha * 0.3);
 			body.graphic.lineStyle(2, body.appearance.circumColor, body.appearance.circumAlpha * 0.3);
 			body.graphic.fillCircle(body.position.x + body.velocity.x, body.position.y + body.velocity.y, body.radius);
 			body.graphic.strokeCircle(body.position.x + body.velocity.x, body.position.y + body.velocity.y, body.radius);
