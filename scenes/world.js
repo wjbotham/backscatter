@@ -127,7 +127,7 @@ export default class World extends Phaser.Scene
 		graphic.strokePath();
 		
 		// ship
-		graphic.lineStyle(2, this.playerShip.color, alpha);
+		graphic.lineStyle(2, this.playerShip.appearance.color, alpha);
 		graphic.strokeCircle(position.x, position.y, 5);
 	}
 	
@@ -140,16 +140,16 @@ export default class World extends Phaser.Scene
 
 		if (body == this.playerShip) {
 			// thrust options
-			body.graphic.lineStyle(2, 0x888888, 1);
+			body.graphic.lineStyle(2, 0x888888, body.appearance.circumAlpha);
 			body.graphic.strokeCircle(body.position.x + body.velocity.x, body.position.y + body.velocity.y, Math.min(body.maxAccel,body.fuel));
 		} else if (body.velocity.x != 0 || body.velocity.y != 0) {
 			// ghost ship
-			body.graphic.lineStyle(2, body.color, 0.3);
+			body.graphic.lineStyle(2, body.appearance.color, 0.3);
 			body.graphic.strokeCircle(body.position.x + body.velocity.x, body.position.y + body.velocity.y, body.radius);
 		}
 		
 		// velocity vector
-		body.graphic.lineStyle(2, 0xFFFFFF, 1);
+		body.graphic.lineStyle(2, 0xFFFFFF, 0.8);
 		body.graphic.beginPath();
 		body.graphic.moveTo(body.position.x, body.position.y);
 		body.graphic.lineTo(body.position.x + body.velocity.x, body.position.y + body.velocity.y);
@@ -157,7 +157,9 @@ export default class World extends Phaser.Scene
 		body.graphic.strokePath();
 		
 		// ship
-		body.graphic.lineStyle(2, body.color, 1);
+		body.graphic.fillStyle(body.appearance.color, body.appearance.fillAlpha);
+		body.graphic.lineStyle(2, body.appearance.color, body.appearance.circumAlpha);
+		body.graphic.fillCircle(body.position.x, body.position.y, body.radius);
 		body.graphic.strokeCircle(body.position.x, body.position.y, body.radius);
 	}
 	
