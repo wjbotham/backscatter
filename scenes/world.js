@@ -34,6 +34,8 @@ export default class World extends Phaser.Scene
 		this.playerShip = config.playerShip;
 		this.bodies = [config.playerShip].concat(config.bodies);
 		this.collisionRules = config.collisionRules;
+		
+		this.worldTime = 1;
 	}
 	
 	create ()
@@ -125,8 +127,10 @@ export default class World extends Phaser.Scene
 		graphic.strokePath();
 		
 		// ship
-		graphic.lineStyle(2, this.playerShip.appearance.color, alpha);
-		graphic.strokeCircle(position.x, position.y, 5);
+		graphic.fillStyle(this.playerShip.appearance.fillColor, this.playerShip.appearance.fillAlpha * alpha);
+		graphic.lineStyle(2, this.playerShip.appearance.circumColor, this.playerShip.appearance.circumAlpha * alpha);
+		graphic.fillCircle(position.x, position.y, this.playerShip.radius);
+		graphic.strokeCircle(position.x, position.y, this.playerShip.radius);
 	}
 	
 	drawBody(body)
@@ -148,19 +152,19 @@ export default class World extends Phaser.Scene
 			body.graphic.strokeCircle(body.position.x + body.velocity.x, body.position.y + body.velocity.y, body.radius);
 		}
 		
-		// velocity vector
-		body.graphic.lineStyle(2, 0xFFFFFF, 0.8);
-		body.graphic.beginPath();
-		body.graphic.moveTo(body.position.x, body.position.y);
-		body.graphic.lineTo(body.position.x + body.velocity.x, body.position.y + body.velocity.y);
-		body.graphic.closePath();
-		body.graphic.strokePath();
-		
 		// ship
 		body.graphic.fillStyle(body.appearance.fillColor, body.appearance.fillAlpha);
 		body.graphic.lineStyle(2, body.appearance.circumColor, body.appearance.circumAlpha);
 		body.graphic.fillCircle(body.position.x, body.position.y, body.radius);
 		body.graphic.strokeCircle(body.position.x, body.position.y, body.radius);
+		
+		// velocity vector
+		body.graphic.lineStyle(1, 0xDDDDDD, body.appearance.circumAlpha, 0.8);
+		body.graphic.beginPath();
+		body.graphic.moveTo(body.position.x, body.position.y);
+		body.graphic.lineTo(body.position.x + body.velocity.x, body.position.y + body.velocity.y);
+		body.graphic.closePath();
+		body.graphic.strokePath();
 	}
 	
 	updateProjectedShipGraphic(ghost_position, proposedAccel)
@@ -173,6 +177,7 @@ export default class World extends Phaser.Scene
 	
 	advanceTurn()
 	{
+		this.worldTime += 1;
 		this.bodies.forEach(function (body) {
 			if (body.destination) {
 				body.spendFuel(Phaser.Math.Distance.BetweenPoints(body.vector, body.destination));
@@ -185,8 +190,10 @@ export default class World extends Phaser.Scene
 		}, this);
 		
 		this.doCollisions();
+		this.doBehaviors();
 		this.doRemovals();
 		this.drawBodies();
+		this.game.scene.keys['Overlay'].updateDebugText();
 	}
 	
 	doCollisions()
@@ -204,6 +211,15 @@ export default class World extends Phaser.Scene
 			}
 		}
 		collisions.forEach(collision => this.handleCollision(collision[0],collision[1]));
+	}
+	
+	doBehaviors()
+	{
+		this.bodies.forEach(function(body) {
+			if (body.behavior) {
+				body.behavior(this);
+			}
+		}, this);
 	}
 	
 	doRemovals()

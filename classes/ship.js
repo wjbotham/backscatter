@@ -7,7 +7,8 @@ export default class Ship extends Body {
 			velocity: config.velocity,
 			name: config.name,
 			appearance: config.appearance,
-			radius: config.radius
+			radius: config.radius,
+			behavior: config.behavior
 		});
 		this.maxAccel = config.maxAccel;
 		this.fuel = config.fuel;

@@ -34,7 +34,8 @@ for (let i = 0; i < 20; i++) {
 		})
 	);
 }
-bodies.push(new Body({
+
+let radar = new Body({
 	position: new Phaser.Geom.Point(600,600),
 	velocity: new Phaser.Geom.Point(0,0),
 	name: 'Radar',
@@ -44,15 +45,65 @@ bodies.push(new Body({
 		fillColor: 0xA020F0,
 		fillAlpha: 0.2
 	},
-	radius: 100
-}));
+	radius: 100,
+	behavior: function(scene) {
+		let newMemories = this.memories.filter(function(memory) { return memory.time == scene.worldTime });
+		newMemories.forEach(function(newMemory) {
+			if (newMemory.event == 'PlayerSighting') {
+				console.log('radar panicking');
+				this.hunters.forEach(function(hunter) {
+					console.log('memory sent to linked hunter');
+					hunter.memories.push(newMemory);
+				});
+			}
+		}, this);
+	}
+});
+radar.memories = [];
+bodies.push(radar);
+
+let hunter = new Ship({
+	position: new Phaser.Geom.Point(100,700),
+	velocity: new Phaser.Geom.Point(4,-4),
+	name: 'Hunter',
+	appearance: {
+		circumColor: 0xCC0000,
+		circumAlpha: 1,
+		fillColor: 0xEE0000,
+		fillAlpha: 1
+	},
+	radius: 5,
+	maxAccel: 60,
+	behavior: function(scene) {
+		let playerSightingMemories = this.memories.filter(function(memory) { return memory.event = 'PlayerSighting' });
+		if (playerSightingMemories.length > 0) {
+			let latestSighting = playerSightingMemories.sort((a, b) => (-a.time) - (-b.time))[0];
+			let currentDrift = {
+				x: this.position.x + this.velocity.x,
+				y: this.position.y + this.velocity.y
+			};
+			let playerSightingMinusDrift = new Phaser.Math.Vector2(
+				latestSighting.position.x + latestSighting.velocity.x - currentDrift.x,
+				latestSighting.position.y + latestSighting.velocity.y - currentDrift.y
+			);
+			playerSightingMinusDrift.setLength(Math.min(this.maxAccel,playerSightingMinusDrift.length()));
+			this.destination = {
+				x: currentDrift.x + playerSightingMinusDrift.x,
+				y: currentDrift.y + playerSightingMinusDrift.y
+			};
+		}
+	}
+});
+hunter.memories = [];
+bodies.push(hunter);
+radar.hunters = [hunter];
 
 let collisionRules = [
 	{
 		subject1Name: 'Player Ship',
 		subject2Name: 'Rock',
 		effect: function(scene, playerShip, rock) {
-			rock.remove = true;
+			//rock.remove = true;
 		}
 	},
 	{
@@ -66,7 +117,14 @@ let collisionRules = [
 		subject1Name: 'Radar',
 		subject2Name: 'Player Ship',
 		effect: function(scene, radar, playerShip) {
-			console.log('radar detected player at ' + playerShip.position.x + ',' + playerShip.position.y + ' with velocity ' + + playerShip.velocity.x + ',' + playerShip.velocity.y);
+			radar.memories.push({ time: scene.worldTime, event: "PlayerSighting", position: playerShip.position, velocity: playerShip.velocity });
+		}
+	},
+	{
+		subject1Name: 'Radar',
+		subject2Name: 'Rock',
+		effect: function(scene, radar, rock) {
+			radar.memories.push({ time: scene.worldTime, event: "RockSighting", position: rock.position, velocity: rock.velocity });
 		}
 	}
 ];
