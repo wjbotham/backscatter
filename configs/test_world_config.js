@@ -37,6 +37,8 @@ bodies.push(new Body({
 	velocity: new Phaser.Geom.Point(0,0),
 	name: 'Radar',
 	appearance: {
+		color: 0xA020F0,
+		circumAlpha: 0.7,
 		fillAlpha: 0.2
 	},
 	radius: 100
