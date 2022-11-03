@@ -142,7 +142,7 @@ export default class World extends Phaser.Scene
 			// thrust options
 			body.graphic.lineStyle(2, 0x888888, 1);
 			body.graphic.strokeCircle(body.position.x + body.velocity.x, body.position.y + body.velocity.y, Math.min(body.maxAccel,body.fuel));
-		} else {
+		} else if (body.velocity.x != 0 || body.velocity.y != 0) {
 			// ghost ship
 			body.graphic.lineStyle(2, body.color, 0.3);
 			body.graphic.strokeCircle(body.position.x + body.velocity.x, body.position.y + body.velocity.y, body.radius);
