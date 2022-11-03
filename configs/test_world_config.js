@@ -9,8 +9,9 @@ let playerShip = new Ship({
 	name: 'Player Ship',
 	color: 0x00FF00,
 	appearance: {
-		color: 0x00FF00,
+		circumColor: 0x00FF00,
 		circumAlpha: 1,
+		fillColor: 0x00FF00,
 		fillAlpha: 1
 	},
 	radius: 5
@@ -24,8 +25,9 @@ for (let i = 0; i < 20; i++) {
 			velocity: Phaser.Math.RandomXY({x:0,y:0},Phaser.Math.Between(1,30)),
 			name: 'Rock',
 			appearance: {
-				color: Phaser.Math.Between(0,1)==0 ? 0xFF0000 : 0x0000FF,
+				circumColor: 0x555555,
 				circumAlpha: 1,
+				fillColor: 0x444444,
 				fillAlpha: 1
 			},
 			radius: Math.min(Phaser.Math.Between(4,40),Phaser.Math.Between(4,40))
@@ -37,8 +39,9 @@ bodies.push(new Body({
 	velocity: new Phaser.Geom.Point(0,0),
 	name: 'Radar',
 	appearance: {
-		color: 0xA020F0,
+		circumColor: 0xA020F0,
 		circumAlpha: 0.7,
+		fillColor: 0xA020F0,
 		fillAlpha: 0.2
 	},
 	radius: 100
@@ -50,11 +53,6 @@ let collisionRules = [
 		subject2Name: 'Rock',
 		effect: function(scene, playerShip, rock) {
 			rock.remove = true;
-			if (rock.color == 0xFF0000) {
-				scene.red += 1;
-			} else if (rock.color == 0x0000FF) {
-				scene.blue += 1;
-			}
 		}
 	},
 	{

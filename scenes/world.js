@@ -31,8 +31,6 @@ export default class World extends Phaser.Scene
 		});
 		console.log(config);
 		this.zoomExponent = 0;
-		this.red = 0;
-		this.blue = 0;
 		this.playerShip = config.playerShip;
 		this.bodies = [config.playerShip].concat(config.bodies);
 		this.collisionRules = config.collisionRules;
@@ -144,8 +142,8 @@ export default class World extends Phaser.Scene
 			body.graphic.strokeCircle(body.position.x + body.velocity.x, body.position.y + body.velocity.y, Math.min(body.maxAccel,body.fuel));
 		} else if (body.velocity.x != 0 || body.velocity.y != 0) {
 			// ghost ship
-			body.graphic.fillStyle(body.appearance.color, body.appearance.fillAlpha * 0.3);
-			body.graphic.lineStyle(2, body.appearance.color, body.appearance.circumAlpha * 0.3);
+			body.graphic.fillStyle(body.appearance.fillcolor, body.appearance.fillAlpha * 0.3);
+			body.graphic.lineStyle(2, body.appearance.circumColor, body.appearance.circumAlpha * 0.3);
 			body.graphic.fillCircle(body.position.x + body.velocity.x, body.position.y + body.velocity.y, body.radius);
 			body.graphic.strokeCircle(body.position.x + body.velocity.x, body.position.y + body.velocity.y, body.radius);
 		}
@@ -159,8 +157,8 @@ export default class World extends Phaser.Scene
 		body.graphic.strokePath();
 		
 		// ship
-		body.graphic.fillStyle(body.appearance.color, body.appearance.fillAlpha);
-		body.graphic.lineStyle(2, body.appearance.color, body.appearance.circumAlpha);
+		body.graphic.fillStyle(body.appearance.fillColor, body.appearance.fillAlpha);
+		body.graphic.lineStyle(2, body.appearance.circumColor, body.appearance.circumAlpha);
 		body.graphic.fillCircle(body.position.x, body.position.y, body.radius);
 		body.graphic.strokeCircle(body.position.x, body.position.y, body.radius);
 	}

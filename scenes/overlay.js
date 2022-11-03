@@ -22,9 +22,7 @@ export default class Overlay extends Phaser.Scene
 			'command: ' + Math.floor(target.x) + ',' + Math.floor(target.y) + '\n' +
 			'thrust: ' + Math.floor(proposedAccel) + ' (' + valid + ')\n' +
 			'velocity: ' + Math.floor(this.playerShip.velocity.x) + ',' + Math.floor(this.playerShip.velocity.y) + '\n' +
-			'fuel: ' + Math.floor(this.playerShip.fuel) + '\n' +
-			'red: ' + this.game.scene.keys['World'].red + '\n' +
-			'blue: ' + this.game.scene.keys['World'].blue
+			'fuel: ' + Math.floor(this.playerShip.fuel)
 		this.debugText.setText(textContent);
 	}
 }
