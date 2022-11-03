@@ -35,7 +35,7 @@ let collisionRules = [
 	{
 		subject1Name: 'Player Ship',
 		subject2Name: 'Rock',
-		effect: function(scene,playerShip,rock) {
+		effect: function(scene, playerShip, rock) {
 			rock.remove = true;
 			if (rock.color == 0xFF0000) {
 				scene.red += 1;
