@@ -23,6 +23,13 @@ for (let i = 0; i < 20; i++) {
 		)
 	);
 }
+bodies.push(new Body(
+	new Phaser.Geom.Point(600,600),
+	new Phaser.Geom.Point(0,0),
+	'Radar',
+	0xA020F0,
+	100
+));
 
 let collisionRules = [
 	{
@@ -42,6 +49,13 @@ let collisionRules = [
 		subject2Name: 'Rock',
 		effect: function(scene, rock1, rock2) {
 			console.log('no rock/rock collision logic implemented');
+		}
+	},
+	{
+		subject1Name: 'Radar',
+		subject2Name: 'Player Ship',
+		effect: function(scene, radar, playerShip) {
+			console.log('radar detected player at ' + playerShip.position.x + ',' + playerShip.position.y + ' with velocity ' + + playerShip.velocity.x + ',' + playerShip.velocity.y);
 		}
 	}
 ];
