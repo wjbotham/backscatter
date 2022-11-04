@@ -86,7 +86,18 @@ let hunter = new Ship({
 				latestSighting.position.x + latestSighting.velocity.x - currentDrift.x,
 				latestSighting.position.y + latestSighting.velocity.y - currentDrift.y
 			);
-			playerSightingMinusDrift.setLength(Math.min(this.maxAccel,playerSightingMinusDrift.length()));
+			let driftDistance = playerSightingMinusDrift.length();
+			let playerSightingMinusCurrentPosition = new Phaser.Math.Vector2(
+				latestSighting.position.x + latestSighting.velocity.x - this.position.x,
+				latestSighting.position.y + latestSighting.velocity.y - this.position.y
+			);
+			let currentDistance = playerSightingMinusCurrentPosition.length();
+			let currentRelativeVelocity = driftDistance - currentDistance;
+			let timeToStop = currentRelativeVelocity / this.maxAccel;
+			let distanceToStop = timeToStop * (currentRelativeVelocity / 2);
+			playerSightingMinusDrift.setLength(
+				(distanceToStop < driftDistance ? 1 : -1) * Math.min(this.maxAccel,driftDistance)
+			);
 			this.destination = {
 				x: currentDrift.x + playerSightingMinusDrift.x,
 				y: currentDrift.y + playerSightingMinusDrift.y
