@@ -64,7 +64,7 @@ bodies.push(radar);
 
 let hunter = new Ship({
 	position: new Phaser.Geom.Point(100,700),
-	velocity: new Phaser.Geom.Point(4,-4),
+	velocity: new Phaser.Math.Vector2(4,-4),
 	name: 'Hunter',
 	appearance: {
 		circumColor: 0xCC0000,
@@ -92,12 +92,26 @@ let hunter = new Ship({
 				latestSighting.position.y + latestSighting.velocity.y - this.position.y
 			);
 			let currentDistance = playerSightingMinusCurrentPosition.length();
-			let currentRelativeVelocity = driftDistance - currentDistance;
-			let timeToStop = currentRelativeVelocity / this.maxAccel;
-			let distanceToStop = timeToStop * (currentRelativeVelocity / 2);
-			playerSightingMinusDrift.setLength(
-				(distanceToStop < driftDistance ? 1 : -1) * Math.min(this.maxAccel,driftDistance)
-			);
+			let currentVelocity = this.velocity.length();
+			let timeToStopNow = Math.floor(currentVelocity / this.maxAccel);
+			let distanceToStopNow = this.maxAccel * timeToStopNow * (timeToStopNow-1) / 2;
+			let extraDistanceToStopLater = currentVelocity*2 + this.maxAccel; 
+			let multiplier = undefined;
+			if (currentDistance < distanceToStopNow) {
+				multiplier = -1;
+			} else if (currentDistance > distanceToStopNow + extraDistanceToStopLater) {
+				multiplier = 1;
+			} else {
+				multiplier = (currentDistance - distanceToStopNow)*(2/extraDistanceToStopLater) - 1;
+			}
+			if (multiplier < 0) {
+				playerSightingMinusDrift = new Phaser.Math.Vector2(
+					this.position.x - currentDrift.x,
+					this.position.y - currentDrift.y
+				);
+				multiplier = -multiplier;
+			}
+			playerSightingMinusDrift.setLength(Math.min(multiplier * this.maxAccel,playerSightingMinusDrift.length()));
 			this.destination = {
 				x: currentDrift.x + playerSightingMinusDrift.x,
 				y: currentDrift.y + playerSightingMinusDrift.y

@@ -181,7 +181,7 @@ export default class World extends Phaser.Scene
 		this.bodies.forEach(function (body) {
 			if (body.destination) {
 				body.spendFuel(Phaser.Math.Distance.BetweenPoints(body.vector, body.destination));
-				body.velocity = new Phaser.Geom.Point(body.destination.x - body.position.x, body.destination.y - body.position.y);
+				body.velocity = new Phaser.Math.Vector2(body.destination.x - body.position.x, body.destination.y - body.position.y);
 				body.position = new Phaser.Geom.Point(body.destination.x, body.destination.y);
 			} else {
 				body.position = new Phaser.Geom.Point(body.vector.x, body.vector.y)
