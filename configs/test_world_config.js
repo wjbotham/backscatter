@@ -1,4 +1,5 @@
 import Ship from '../classes/ship.js';
+import Attachment from '../classes/attachment.js';
 import Body from '../classes/body.js';
 
 let playerShip = new Ship({
@@ -35,6 +36,19 @@ for (let i = 0; i < 20; i++) {
 	);
 }
 
+function radarScanBehavior(scene) {
+	let newMemories = this.memories.filter(function(memory) { return memory.time == scene.worldTime });
+	newMemories.forEach(function(newMemory) {
+		if (newMemory.event == 'PlayerSighting') {
+			console.log('radar panicking');
+			this.hunters.forEach(function(hunter) {
+				console.log('memory sent to linked hunter');
+				hunter.memories.push(newMemory);
+			});
+		}
+	}, this);
+}
+
 let radar = new Body({
 	position: new Phaser.Geom.Point(600,600),
 	velocity: new Phaser.Geom.Point(0,0),
@@ -46,18 +60,7 @@ let radar = new Body({
 		fillAlpha: 0.2
 	},
 	radius: 100,
-	behavior: function(scene) {
-		let newMemories = this.memories.filter(function(memory) { return memory.time == scene.worldTime });
-		newMemories.forEach(function(newMemory) {
-			if (newMemory.event == 'PlayerSighting') {
-				console.log('radar panicking');
-				this.hunters.forEach(function(hunter) {
-					console.log('memory sent to linked hunter');
-					hunter.memories.push(newMemory);
-				});
-			}
-		}, this);
-	}
+	behavior: radarScanBehavior
 });
 radar.memories = [];
 bodies.push(radar);
@@ -122,6 +125,22 @@ let hunter = new Ship({
 hunter.memories = [];
 bodies.push(hunter);
 radar.hunters = [hunter];
+
+let onboardRadar = new Attachment({
+	name: 'Radar',
+	appearance: {
+		circumColor: 0xA020F0,
+		circumAlpha: 0.7,
+		fillColor: 0xA020F0,
+		fillAlpha: 0.2
+	},
+	radius: 100,
+	behavior: radarScanBehavior,
+	parentBody: hunter
+});
+onboardRadar.memories = [];
+bodies.push(onboardRadar);
+onboardRadar.hunters = [hunter];
 
 let collisionRules = [
 	{
