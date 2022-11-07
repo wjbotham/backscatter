@@ -140,6 +140,9 @@ let onboardRadar = new Attachment({
 });
 onboardRadar.memories = [];
 bodies.push(onboardRadar);
+
+bodies.push(hunter);
+radar.hunters = [hunter];
 onboardRadar.hunters = [hunter];
 
 let collisionRules = [
