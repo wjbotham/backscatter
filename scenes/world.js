@@ -1,3 +1,5 @@
+
+
 function getWorldCoordinates(pointer) {
 	return {
 		x: pointer.worldX,
@@ -177,6 +179,10 @@ export default class World extends Phaser.Scene
 	
 	advanceTurn()
 	{
+		if (this.playerShip.fuel <= 1500) {
+			this.scene.stop('Overlay');
+			this.scene.start('StartScreen');
+		}
 		this.worldTime += 1;
 		this.bodies.forEach(function (body) {
 			if (body.destination) {

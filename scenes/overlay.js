@@ -3,8 +3,7 @@ export default class Overlay extends Phaser.Scene
 	constructor ()
 	{
 		super({
-			key: 'Overlay',
-			active: true
+			key: 'Overlay'
 		});
 	}
 	
