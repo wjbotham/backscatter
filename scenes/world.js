@@ -221,10 +221,11 @@ export default class World extends Phaser.Scene
 	
 	doBehaviors()
 	{
-		this.bodies.forEach(function(body) {
-			if (body.behavior) {
-				body.behavior(this);
-			}
+		let bodiesWithBehaviors = this.bodies.filter(body => body.behavior);
+		bodiesWithBehaviors.sort(function(a,b) { return a.behavior.initiative - b.behavior.initiative });
+		bodiesWithBehaviors.forEach(function(body) {
+			console.log("initiative: " + body.behavior.initiative);
+			body.behavior.action.call(body, this);
 		}, this);
 	}
 	
