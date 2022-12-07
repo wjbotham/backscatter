@@ -23,6 +23,72 @@ const INITIATIVE_SCORES = {
 	THRUST: 50
 };
 
+const BEHAVIORS = {
+	RADAR_SCAN: {
+		action: function radarScanAction(scene) {
+			console.log(this);
+			let newMemories = this.memories.filter(function(memory) { return memory.time == scene.worldTime });
+			newMemories.forEach(function(newMemory) {
+				if (newMemory.event == 'PlayerSighting') {
+					console.log('radar panicking');
+					this.hunters.forEach(function(hunter) {
+						console.log('memory sent to linked hunter');
+						hunter.memories.push(newMemory);
+					});
+				}
+			}, this);
+		},
+		initiative: INITIATIVE_SCORES.RADAR
+	},
+	HUNTER: {
+		action: function(scene) {
+			let playerSightingMemories = this.memories.filter(function(memory) { return memory.event = 'PlayerSighting' });
+			if (playerSightingMemories.length > 0) {
+				let latestSighting = playerSightingMemories.sort((a, b) => (-a.time) - (-b.time))[0];
+				let currentDrift = {
+					x: this.position.x + this.velocity.x,
+					y: this.position.y + this.velocity.y
+				};
+				let playerSightingMinusDrift = new Phaser.Math.Vector2(
+					latestSighting.position.x + latestSighting.velocity.x - currentDrift.x,
+					latestSighting.position.y + latestSighting.velocity.y - currentDrift.y
+				);
+				let driftDistance = playerSightingMinusDrift.length();
+				let playerSightingMinusCurrentPosition = new Phaser.Math.Vector2(
+					latestSighting.position.x + latestSighting.velocity.x - this.position.x,
+					latestSighting.position.y + latestSighting.velocity.y - this.position.y
+				);
+				let currentDistance = playerSightingMinusCurrentPosition.length();
+				let currentVelocity = this.velocity.length();
+				let timeToStopNow = Math.floor(currentVelocity / this.maxAccel);
+				let distanceToStopNow = this.maxAccel * timeToStopNow * (timeToStopNow-1) / 2;
+				let extraDistanceToStopLater = currentVelocity*2 + this.maxAccel; 
+				let multiplier = undefined;
+				if (currentDistance < distanceToStopNow) {
+					multiplier = -1;
+				} else if (currentDistance > distanceToStopNow + extraDistanceToStopLater) {
+					multiplier = 1;
+				} else {
+					multiplier = (currentDistance - distanceToStopNow)*(2/extraDistanceToStopLater) - 1;
+				}
+				if (multiplier < 0) {
+					playerSightingMinusDrift = new Phaser.Math.Vector2(
+						this.position.x - currentDrift.x,
+						this.position.y - currentDrift.y
+					);
+					multiplier = -multiplier;
+				}
+				playerSightingMinusDrift.setLength(Math.min(multiplier * this.maxAccel,playerSightingMinusDrift.length()));
+				this.destination = {
+					x: currentDrift.x + playerSightingMinusDrift.x,
+					y: currentDrift.y + playerSightingMinusDrift.y
+				};
+			}
+		},
+		initiative: INITIATIVE_SCORES.THRUST
+	}
+};
+
 function makeRock() {
 	let params = {
 		position: new Phaser.Geom.Point(Phaser.Math.Between(200,800),Phaser.Math.Between(200,800)),
@@ -51,7 +117,7 @@ function makeRadar() {
 			fillAlpha: 0.2
 		},
 		radius: 100,
-		behavior: radarScanBehavior
+		behavior: BEHAVIORS.RADAR_SCAN
 	};
 	let body = new Body(params);
 	body.memories = [];
@@ -71,79 +137,34 @@ function makeHunter() {
 		},
 		radius: 5,
 		maxAccel: 60,
-		behavior: {
-			action: function(scene) {
-				let playerSightingMemories = this.memories.filter(function(memory) { return memory.event = 'PlayerSighting' });
-				if (playerSightingMemories.length > 0) {
-					let latestSighting = playerSightingMemories.sort((a, b) => (-a.time) - (-b.time))[0];
-					let currentDrift = {
-						x: this.position.x + this.velocity.x,
-						y: this.position.y + this.velocity.y
-					};
-					let playerSightingMinusDrift = new Phaser.Math.Vector2(
-						latestSighting.position.x + latestSighting.velocity.x - currentDrift.x,
-						latestSighting.position.y + latestSighting.velocity.y - currentDrift.y
-					);
-					let driftDistance = playerSightingMinusDrift.length();
-					let playerSightingMinusCurrentPosition = new Phaser.Math.Vector2(
-						latestSighting.position.x + latestSighting.velocity.x - this.position.x,
-						latestSighting.position.y + latestSighting.velocity.y - this.position.y
-					);
-					let currentDistance = playerSightingMinusCurrentPosition.length();
-					let currentVelocity = this.velocity.length();
-					let timeToStopNow = Math.floor(currentVelocity / this.maxAccel);
-					let distanceToStopNow = this.maxAccel * timeToStopNow * (timeToStopNow-1) / 2;
-					let extraDistanceToStopLater = currentVelocity*2 + this.maxAccel; 
-					let multiplier = undefined;
-					if (currentDistance < distanceToStopNow) {
-						multiplier = -1;
-					} else if (currentDistance > distanceToStopNow + extraDistanceToStopLater) {
-						multiplier = 1;
-					} else {
-						multiplier = (currentDistance - distanceToStopNow)*(2/extraDistanceToStopLater) - 1;
-					}
-					if (multiplier < 0) {
-						playerSightingMinusDrift = new Phaser.Math.Vector2(
-							this.position.x - currentDrift.x,
-							this.position.y - currentDrift.y
-						);
-						multiplier = -multiplier;
-					}
-					playerSightingMinusDrift.setLength(Math.min(multiplier * this.maxAccel,playerSightingMinusDrift.length()));
-					this.destination = {
-						x: currentDrift.x + playerSightingMinusDrift.x,
-						y: currentDrift.y + playerSightingMinusDrift.y
-					};
-				}
-			},
-			initiative: INITIATIVE_SCORES.THRUST
-		}
+		behavior: BEHAVIORS.HUNTER
 	};
 	let ship = new Ship(params);
 	ship.memories = [];
 	return ship;
 }
 
+function makeOnboardRadar(parentBody) {
+	let attachment = new Attachment({
+		name: 'Radar',
+		appearance: {
+			circumColor: 0xA020F0,
+			circumAlpha: 0.7,
+			fillColor: 0xA020F0,
+			fillAlpha: 0.2
+		},
+		radius: 100,
+		behavior: BEHAVIORS.RADAR_SCAN,
+		parentBody: parentBody
+	});
+	attachment.memories = [];
+	attachment.hunters = [parentBody];
+	return attachment;
+}
+
 let bodies = [];
 for (let i = 0; i < 20; i++) {
 	bodies.push(makeRock());
-}
-
-let radarScanBehavior = {
-	action: function radarScanAction(scene) {
-		console.log(this);
-		let newMemories = this.memories.filter(function(memory) { return memory.time == scene.worldTime });
-		newMemories.forEach(function(newMemory) {
-			if (newMemory.event == 'PlayerSighting') {
-				console.log('radar panicking');
-				this.hunters.forEach(function(hunter) {
-					console.log('memory sent to linked hunter');
-					hunter.memories.push(newMemory);
-				});
-			}
-		}, this);
-	},
-	initiative: INITIATIVE_SCORES.RADAR
 }
 
 let radar = makeRadar();
@@ -153,23 +174,8 @@ let hunter = makeHunter();
 bodies.push(hunter);
 radar.hunters = [hunter];
 
-let onboardRadar = new Attachment({
-	name: 'Radar',
-	appearance: {
-		circumColor: 0xA020F0,
-		circumAlpha: 0.7,
-		fillColor: 0xA020F0,
-		fillAlpha: 0.2
-	},
-	radius: 100,
-	behavior: radarScanBehavior,
-	parentBody: hunter
-});
-onboardRadar.memories = [];
+let onboardRadar = makeOnboardRadar(hunter);
 bodies.push(onboardRadar);
-
-radar.hunters = [hunter];
-onboardRadar.hunters = [hunter];
 
 let collisionRules = [
 	{
