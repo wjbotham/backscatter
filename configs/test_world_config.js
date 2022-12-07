@@ -89,10 +89,14 @@ const BEHAVIORS = {
 	}
 };
 
+function randomPoint(lowX,highX,lowY,highY) {
+	return new Phaser.Geom.Point(Phaser.Math.Between(lowX,highX),Phaser.Math.Between(lowY,highY));
+}
+
 function makeRock() {
 	let params = {
-		position: new Phaser.Geom.Point(Phaser.Math.Between(200,800),Phaser.Math.Between(200,800)),
-		velocity: Phaser.Math.RandomXY({x:0,y:0},Phaser.Math.Between(1,30)),
+		position: randomPoint(-200,1200,-200,1200),
+		velocity: Phaser.Math.RandomXY({x:0,y:0},Phaser.Math.Between(1,10)),
 		name: 'Rock',
 		appearance: {
 			circumColor: 0x555555,
@@ -121,13 +125,15 @@ function makeRadar() {
 	};
 	let body = new Body(params);
 	body.memories = [];
+	body.hunters = [];
 	return body;
 }
 
-function makeHunter() {
+function makeHunter(radar) {
+	let randomVelocity = Phaser.Math.RandomXY({x:0,y:0},10);
 	let params = {
-		position: new 	Phaser.Geom.Point(100,700),
-		velocity: new Phaser.Math.Vector2(4,-4),
+		position: randomPoint(200,800,200,800),
+		velocity: new Phaser.Math.Vector2(randomVelocity.x, randomVelocity.y),
 		name: 'Hunter',
 		appearance: {
 			circumColor: 0xCC0000,
@@ -141,6 +147,7 @@ function makeHunter() {
 	};
 	let ship = new Ship(params);
 	ship.memories = [];
+	radar.hunters.push(ship);
 	return ship;
 }
 
@@ -151,7 +158,7 @@ function makeOnboardRadar(parentBody) {
 			circumColor: 0xA020F0,
 			circumAlpha: 0.7,
 			fillColor: 0xA020F0,
-			fillAlpha: 0.2
+			fillAlpha: 0.08
 		},
 		radius: 100,
 		behavior: BEHAVIORS.RADAR_SCAN,
@@ -170,12 +177,12 @@ for (let i = 0; i < 20; i++) {
 let radar = makeRadar();
 bodies.push(radar);
 
-let hunter = makeHunter();
-bodies.push(hunter);
-radar.hunters = [hunter];
-
-let onboardRadar = makeOnboardRadar(hunter);
-bodies.push(onboardRadar);
+for (let i = 0; i < 3; i++) {
+	let hunter = makeHunter(radar);
+	let onboardRadar = makeOnboardRadar(hunter);
+	bodies.push(hunter);
+	bodies.push(onboardRadar);
+}
 
 let collisionRules = [
 	{
