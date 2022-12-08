@@ -42,7 +42,7 @@ const BEHAVIORS = {
 	TARGET: {  
 		initiative: INITIATIVE_SCORES.PLAN,
 		action: function targetAction(scene) {
-			let playerSightingMemories = this.memories.filter(function(memory) { return memory.event = 'PlayerSighting' });
+			let playerSightingMemories = this.memories.filter(function(memory) { return memory.event == 'PlayerSighting' });
 			if (playerSightingMemories.length > 0) {
 				let latestSighting = playerSightingMemories.sort((a, b) => (-a.time) - (-b.time))[0];
 				this.currentTarget = new Phaser.Geom.Point(
