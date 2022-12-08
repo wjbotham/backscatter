@@ -19,44 +19,55 @@ let playerShip = new Ship({
 });
 
 const INITIATIVE_SCORES = {
-	RADAR: 10,
-	THRUST: 50
+	DETECT: 10,
+	PLAN: 40,
+	MOVE: 50
 };
 
 const BEHAVIORS = {
 	RADAR_SCAN: {
+		initiative: INITIATIVE_SCORES.DETECT,
 		action: function radarScanAction(scene) {
 			console.log(this);
 			let newMemories = this.memories.filter(function(memory) { return memory.time == scene.worldTime });
 			newMemories.forEach(function(newMemory) {
 				if (newMemory.event == 'PlayerSighting') {
-					console.log('radar panicking');
 					this.hunters.forEach(function(hunter) {
-						console.log('memory sent to linked hunter');
 						hunter.memories.push(newMemory);
 					});
 				}
 			}, this);
-		},
-		initiative: INITIATIVE_SCORES.RADAR
+		}
 	},
-	HUNTER: {
-		action: function huntAction(scene) {
+	TARGET: {  
+		initiative: INITIATIVE_SCORES.PLAN,
+		action: function targetAction(scene) {
 			let playerSightingMemories = this.memories.filter(function(memory) { return memory.event = 'PlayerSighting' });
 			if (playerSightingMemories.length > 0) {
 				let latestSighting = playerSightingMemories.sort((a, b) => (-a.time) - (-b.time))[0];
+				this.currentTarget = new Phaser.Geom.Point(
+					latestSighting.position.x + latestSighting.velocity.x,
+					latestSighting.position.y + latestSighting.velocity.y
+				);
+			}
+		}
+	},
+	CHASE: {
+		initiative: INITIATIVE_SCORES.MOVE,
+		action: function chaseAction(scene) {
+			if (this.currentTarget) {
 				let currentDrift = {
 					x: this.position.x + this.velocity.x,
 					y: this.position.y + this.velocity.y
 				};
 				let playerSightingMinusDrift = new Phaser.Math.Vector2(
-					latestSighting.position.x + latestSighting.velocity.x - currentDrift.x,
-					latestSighting.position.y + latestSighting.velocity.y - currentDrift.y
+					this.currentTarget.x - currentDrift.x,
+					this.currentTarget.y - currentDrift.y
 				);
 				let driftDistance = playerSightingMinusDrift.length();
 				let playerSightingMinusCurrentPosition = new Phaser.Math.Vector2(
-					latestSighting.position.x + latestSighting.velocity.x - this.position.x,
-					latestSighting.position.y + latestSighting.velocity.y - this.position.y
+					this.currentTarget.x - this.position.x,
+					this.currentTarget.y - this.position.y
 				);
 				let currentDistance = playerSightingMinusCurrentPosition.length();
 				let currentVelocity = this.velocity.length();
@@ -84,8 +95,7 @@ const BEHAVIORS = {
 					y: currentDrift.y + playerSightingMinusDrift.y
 				};
 			}
-		},
-		initiative: INITIATIVE_SCORES.THRUST
+		}
 	}
 };
 
@@ -143,7 +153,7 @@ function makeHunter(radar) {
 		},
 		radius: 5,
 		maxAccel: 60,
-		behaviors: [BEHAVIORS.HUNTER]
+		behaviors: [BEHAVIORS.TARGET, BEHAVIORS.CHASE]
 	};
 	let ship = new Ship(params);
 	ship.memories = [];

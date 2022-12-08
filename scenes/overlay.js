@@ -17,7 +17,7 @@ export default class Overlay extends Phaser.Scene
 	{
 		if (target) {
 			this.target = target;
-		}  
+		}
 		let proposedAccel = Phaser.Math.Distance.BetweenPoints(this.playerShip.vector, this.target);
 		let valid = proposedAccel < Math.min(this.playerShip.maxAccel,this.playerShip.fuel) ? true : false;
 		let textContent =
