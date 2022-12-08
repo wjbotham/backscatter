@@ -6,7 +6,7 @@ export default class Attachment extends Body {
 			name: config.name,
 			appearance: config.appearance,
 			radius: config.radius,
-			behavior: config.behavior
+			behaviors: config.behaviors
 		});
 		this.parentBody = config.parentBody;
 	}

@@ -41,7 +41,7 @@ const BEHAVIORS = {
 		initiative: INITIATIVE_SCORES.RADAR
 	},
 	HUNTER: {
-		action: function(scene) {
+		action: function huntAction(scene) {
 			let playerSightingMemories = this.memories.filter(function(memory) { return memory.event = 'PlayerSighting' });
 			if (playerSightingMemories.length > 0) {
 				let latestSighting = playerSightingMemories.sort((a, b) => (-a.time) - (-b.time))[0];
@@ -121,7 +121,7 @@ function makeRadar() {
 			fillAlpha: 0.2
 		},
 		radius: 100,
-		behavior: BEHAVIORS.RADAR_SCAN
+		behaviors: [BEHAVIORS.RADAR_SCAN]
 	};
 	let body = new Body(params);
 	body.memories = [];
@@ -143,7 +143,7 @@ function makeHunter(radar) {
 		},
 		radius: 5,
 		maxAccel: 60,
-		behavior: BEHAVIORS.HUNTER
+		behaviors: [BEHAVIORS.HUNTER]
 	};
 	let ship = new Ship(params);
 	ship.memories = [];
@@ -161,7 +161,7 @@ function makeOnboardRadar(parentBody) {
 			fillAlpha: 0.08
 		},
 		radius: 100,
-		behavior: BEHAVIORS.RADAR_SCAN,
+		behaviors: [BEHAVIORS.RADAR_SCAN],
 		parentBody: parentBody
 	});
 	attachment.memories = [];

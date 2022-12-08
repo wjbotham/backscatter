@@ -5,7 +5,7 @@ export default class Body {
 		this.name = config.name;
 		this.appearance = config.appearance;
 		this.radius = config.radius;
-		this.behavior = config.behavior;
+		this.behaviors = config.behaviors;
 	}
 	get vector() {
 		return { x: this.position.x + this.velocity.x, y: this.position.y + this.velocity.y };
