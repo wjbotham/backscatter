@@ -28,7 +28,6 @@ const BEHAVIORS = {
 	RADAR_SCAN: {
 		initiative: INITIATIVE_SCORES.DETECT,
 		action: function radarScanAction(scene) {
-			console.log(this);
 			let newMemories = this.memories.filter(function(memory) { return memory.time == scene.worldTime });
 			newMemories.forEach(function(newMemory) {
 				if (newMemory.event == 'PlayerSighting') {
@@ -42,13 +41,21 @@ const BEHAVIORS = {
 	TARGET: {  
 		initiative: INITIATIVE_SCORES.PLAN,
 		action: function targetAction(scene) {
-			let playerSightingMemories = this.memories.filter(function(memory) { return memory.event == 'PlayerSighting' });
+			let playerSightingMemories = this.memories.filter(function(memory) {
+				return memory.event == 'PlayerSighting' && memory.time >= scene.worldTime - 10
+			});
+			console.log(this);
+			if (this.currentTarget && Phaser.Math.Distance.BetweenPoints(this.position,this.currentTarget) < 50) {
+				this.currentTarget = undefined;
+			}
 			if (playerSightingMemories.length > 0) {
 				let latestSighting = playerSightingMemories.sort((a, b) => (-a.time) - (-b.time))[0];
 				this.currentTarget = new Phaser.Geom.Point(
 					latestSighting.position.x + latestSighting.velocity.x,
 					latestSighting.position.y + latestSighting.velocity.y
 				);
+			} else if (!this.currentTarget) {
+				this.currentTarget = this.favoriteSpot.add(Phaser.Math.RandomXY({x:0,y:0},300));
 			}
 		}
 	},
@@ -157,6 +164,7 @@ function makeHunter(radar) {
 	};
 	let ship = new Ship(params);
 	ship.memories = [];
+	ship.favoriteSpot = new Phaser.Math.Vector2(ship.position.x,ship.position.y);
 	radar.hunters.push(ship);
 	return ship;
 }
