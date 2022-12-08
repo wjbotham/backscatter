@@ -31,7 +31,6 @@ export default class World extends Phaser.Scene
 		super({
 			key: 'World'
 		});
-		console.log(config);
 		this.zoomExponent = 0;
 		this.playerShip = config.playerShip;
 		this.bodies = [config.playerShip].concat(config.bodies);
@@ -241,7 +240,6 @@ export default class World extends Phaser.Scene
 			bodyBehaviorsByInitiative[initiative].forEach(function(bodyBehavior) {
 				body = bodyBehavior.body;
 				behavior = bodyBehavior.behavior;
-				console.log(this);
 				behavior.action.call(body, this);
 			}, this);
 		}, this);

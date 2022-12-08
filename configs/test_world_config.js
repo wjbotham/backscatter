@@ -21,7 +21,8 @@ let playerShip = new Ship({
 const INITIATIVE_SCORES = {
 	DETECT: 10,
 	PLAN: 40,
-	MOVE: 50
+	MOVE: 50,
+	ATTACK: 70
 };
 
 const BEHAVIORS = {
@@ -44,7 +45,6 @@ const BEHAVIORS = {
 			let playerSightingMemories = this.memories.filter(function(memory) {
 				return memory.event == 'PlayerSighting' && memory.time >= scene.worldTime - 10
 			});
-			console.log(this);
 			if (this.currentTarget && Phaser.Math.Distance.BetweenPoints(this.position,this.currentTarget) < 50) {
 				this.currentTarget = undefined;
 			}
@@ -101,6 +101,15 @@ const BEHAVIORS = {
 					x: currentDrift.x + playerSightingMinusDrift.x,
 					y: currentDrift.y + playerSightingMinusDrift.y
 				};
+			}
+		}
+	},
+	ATTACK: {
+		initiative: INITIATIVE_SCORES.ATTACK,
+		action: function attackAction(scene) {
+			if (Phaser.Math.Distance.BetweenPoints(this.position,scene.playerShip.position) < 50) {
+				scene.playerShip.remove = true;
+				console.log("kill");
 			}
 		}
 	}
@@ -160,7 +169,7 @@ function makeHunter(radar) {
 		},
 		radius: 5,
 		maxAccel: 60,
-		behaviors: [BEHAVIORS.TARGET, BEHAVIORS.CHASE]
+		behaviors: [BEHAVIORS.TARGET, BEHAVIORS.CHASE, BEHAVIORS.ATTACK]
 	};
 	let ship = new Ship(params);
 	ship.memories = [];
