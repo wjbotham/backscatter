@@ -104,4 +104,9 @@ export default class GameState {
 			}
 		}, this);
 	}
+	
+	setPlayerShipDestination(target)
+	{
+		this.playerShip.destination = target;
+	}
 }

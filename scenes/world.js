@@ -52,7 +52,7 @@ export default class World extends Phaser.Scene
 			
 			var proposedAccel = Phaser.Math.Distance.BetweenPoints(this.gameState.playerShip.vector, target);
 			if (proposedAccel <= maxLength) {
-				this.gameState.playerShip.destination = target;
+				this.gameState.setPlayerShipDestination(target);
 				this.advanceTurn();
 			}
 			eventsCenter.emit('update-debug-text', { target: target, playerShip: this.gameState.playerShip, worldTime: this.gameState.worldTime });
@@ -106,6 +106,13 @@ export default class World extends Phaser.Scene
 					break;
 			}
 		}, this);
+	}
+	
+	advanceTurn()
+	{
+		this.gameState.advanceTurn();
+		this.drawBodies();
+		eventsCenter.emit('update-debug-text', { playerShip: this.gameState.playerShip, worldTime: this.gameState.worldTime });
 	}
 	
 	drawShipGraphic(graphic, alpha, position, velocity, maxAccel)
@@ -170,13 +177,6 @@ export default class World extends Phaser.Scene
 		let ghost_velocity = new Phaser.Geom.Point(ghost_position.x - this.gameState.playerShip.position.x, ghost_position.y - this.gameState.playerShip.position.y);
 		let ghost_fuel = this.gameState.playerShip.fuel-proposedAccel;
 		this.drawShipGraphic(this.projectedShipGraphic, 0.4, ghost_position, ghost_velocity, Math.min(this.gameState.playerShip.maxAccel,ghost_fuel));
-	}
-	
-	advanceTurn()
-	{
-		this.gameState.advanceTurn();
-		this.drawBodies();
-		eventsCenter.emit('update-debug-text', { playerShip: this.gameState.playerShip, worldTime: this.gameState.worldTime });
 	}
 	
 	drawBodies()
