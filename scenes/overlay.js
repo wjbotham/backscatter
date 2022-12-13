@@ -1,3 +1,5 @@
+import eventsCenter from '../events_center.js'
+
 export default class Overlay extends Phaser.Scene
 {
 	constructor ()
@@ -9,23 +11,34 @@ export default class Overlay extends Phaser.Scene
 	
 	create ()
 	{
+		eventsCenter.on('update-debug-text', this.updateDebugText, this);
+		this.events.on(Phaser.Scenes.Events.SHUTDOWN, () => {
+			eventsCenter.off('update-debug-text', this.updateDebugText, this);
+		});
+		
 		this.debugText = this.add.text(10,10, 'Waiting for click');
-		this.playerShip = this.game.scene.keys['World'].playerShip;
 	}
 	
-	updateDebugText (target)
+	updateDebugText (state)
 	{
+		let target = state.target;
+		let playerShip = state.playerShip;
+		let worldTime = state.worldTime;
+		
 		if (target) {
-			this.target = target;
+			this.lastTarget = target;
+		} else {
+			target = this.lastTarget;
 		}
-		let proposedAccel = Phaser.Math.Distance.BetweenPoints(this.playerShip.vector, this.target);
-		let valid = proposedAccel < Math.min(this.playerShip.maxAccel,this.playerShip.fuel) ? true : false;
+		
+		let proposedAccel = Phaser.Math.Distance.BetweenPoints(playerShip.vector, target);
+		let valid = proposedAccel < Math.min(playerShip.maxAccel,playerShip.fuel) ? true : false;
 		let textContent =
-			'turn: ' + this.game.scene.keys['World'].worldTime + '\n' +
-			'command: ' + Math.round(this.target.x) + ',' + Math.floor(this.target.y) + '\n' +
+			'turn: ' + worldTime + '\n' +
+			'command: ' + Math.round(target.x) + ',' + Math.floor(target.y) + '\n' +
 			'thrust: ' + Math.round(proposedAccel) + ' (' + valid + ')\n' +
-			'velocity: ' + Math.floor(this.playerShip.velocity.x) + ',' + Math.floor(this.playerShip.velocity.y) + '\n' +
-			'fuel: ' + Math.floor(this.playerShip.fuel)
+			'velocity: ' + Math.floor(playerShip.velocity.x) + ',' + Math.floor(playerShip.velocity.y) + '\n' +
+			'fuel: ' + Math.floor(playerShip.fuel)
 		this.debugText.setText(textContent);
 	}
 }

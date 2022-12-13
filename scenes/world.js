@@ -1,4 +1,4 @@
-
+import eventsCenter from '../events_center.js'
 
 function getWorldCoordinates(pointer) {
 	return {
@@ -41,7 +41,6 @@ export default class World extends Phaser.Scene
 	
 	create ()
 	{
-		var overlay = this.game.scene.keys['Overlay'];
 		this.projectedShipGraphic = this.add.graphics();
 		
 		this.drawBodies();
@@ -59,7 +58,7 @@ export default class World extends Phaser.Scene
 				this.playerShip.destination = target;
 				this.advanceTurn();
 			}
-			overlay.updateDebugText(target);
+			eventsCenter.emit('update-debug-text', { target: target, playerShip: this.playerShip, worldTime: this.worldTime });
 		}, this);
 		
 		this.input.on('pointermove', function(pointer) {
@@ -75,7 +74,7 @@ export default class World extends Phaser.Scene
 			if (proposedAccel <= maxLength) {
 				this.updateProjectedShipGraphic(target, proposedAccel);
 			}
-			overlay.updateDebugText(target);
+			eventsCenter.emit('update-debug-text', { target: target, playerShip: this.playerShip, worldTime: this.worldTime });
 		}, this);
 		
 		this.input.on('wheel', function(pointer, currentlyOver, dx, dy, dz, event) { 
@@ -198,7 +197,7 @@ export default class World extends Phaser.Scene
 		this.doBehaviors();
 		this.doRemovals();
 		this.drawBodies();
-		this.game.scene.keys['Overlay'].updateDebugText();
+		eventsCenter.emit('update-debug-text', { playerShip: this.playerShip, worldTime: this.worldTime });
 	}
 	
 	doCollisions()
