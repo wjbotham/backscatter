@@ -13,12 +13,12 @@ export default class Overlay extends Phaser.Scene
 	{		
 		this.debugText = this.add.text(10,10, 'Waiting for click');
 		
-		this.testButton = this.add.text(10,200, 'Button', { fill: '#0f0' });
+		this.testButton = this.add.text(10,200, 'Jammer', { fill: '#0f0', backgroundColor: '#333' });
 		this.testButton.setInteractive();
 		this.testButton.on('pointerover', () => { this.testButton.setFontStyle('bold'); });
 		this.testButton.on('pointerout', () => { this.testButton.setFontStyle(''); });
-		this.testButton.on('pointerdown', () => {
-			eventsCenter.emit('test-button-press');
+		this.testButton.on('pointerup', () => {
+			eventsCenter.emit('fire-jammer');
 		});
 		
 		eventsCenter.on('update-debug-text', this.updateDebugText, this);

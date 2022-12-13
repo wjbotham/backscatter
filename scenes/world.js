@@ -107,9 +107,9 @@ export default class World extends Phaser.Scene
 			}
 		}, this);
 		
-		eventsCenter.on('test-button-press', this.testButtonPress, this);
+		eventsCenter.on('fire-jammer', this.fireJammer, this);
 		this.events.on(Phaser.Scenes.Events.SHUTDOWN, () => {
-			eventsCenter.off('test-button-press', this.testButtonPress, this);
+			eventsCenter.off('fire-jammer', this.fireJammer, this);
 		});
 	}
 	
@@ -131,6 +131,7 @@ export default class World extends Phaser.Scene
 	{
 		if (body.graphic) {
 			body.graphic.destroy()
+			
 		}
 		body.graphic = this.add.graphics();
 
@@ -153,12 +154,18 @@ export default class World extends Phaser.Scene
 		body.graphic.strokeCircle(body.position.x, body.position.y, body.radius);
 		
 		// velocity vector
-		body.graphic.lineStyle(1, 0xDDDDDD, body.appearance.circumAlpha, 0.8);
+		body.graphic.lineStyle(1, 0xDDDDDD, body.appearance.circumAlpha);
 		body.graphic.beginPath();
 		body.graphic.moveTo(body.position.x, body.position.y);
 		body.graphic.lineTo(body.position.x + body.velocity.x, body.position.y + body.velocity.y);
 		body.graphic.closePath();
 		body.graphic.strokePath();
+		
+		// condition indicator
+		if (body.jammed) {
+			body.graphic.lineStyle(4, 0xFFFFFF, 0.5);
+			body.graphic.strokeCircle(body.position.x, body.position.y, body.radius + 10);
+		}
 	}
 	
 	drawShipGraphic(graphic, alpha, position, velocity, maxAccel)
@@ -183,9 +190,10 @@ export default class World extends Phaser.Scene
 		graphic.strokeCircle(position.x, position.y, this.gameState.playerShip.radius);
 	}
 	
-	testButtonPress()
+	fireJammer()
 	{
-		console.log('button press');
+		this.gameState.fireJammer();
+		this.drawBodies();
 	}
 	
 	updateProjectedShipGraphic(ghost_position, proposedAccel)

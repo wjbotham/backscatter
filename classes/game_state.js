@@ -83,8 +83,20 @@ export default class GameState {
 			if (body.remove) {
 				body.graphic.destroy();
 			}
-		});
+		}, this);
 		this.bodies = this.bodies.filter(body => !body.remove);
+	}
+	
+	fireJammer()
+	{
+		this.bodies.forEach(function(body) {
+			if (Phaser.Math.Distance.BetweenPoints(body.position, this.playerShip.position) < 200) {
+				if (body.name == 'Radar') {
+					console.log('object jammed: ' + body.name);
+					body.jammed = true;
+				}
+			}
+		}, this);
 	}
 	
 	handleCollision(body1,body2)

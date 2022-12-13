@@ -32,9 +32,13 @@ const BEHAVIORS = {
 			let newMemories = this.memories.filter(function(memory) { return memory.time == gameState.worldTime });
 			newMemories.forEach(function(newMemory) {
 				if (newMemory.event == 'PlayerSighting') {
-					this.hunters.forEach(function(hunter) {
-						hunter.memories.push(newMemory);
-					});
+					if (this.jammed) {
+						console.log(this.name + ' tries to alert but is jammed');
+					} else {
+						this.hunters.forEach(function(hunter) {
+							hunter.memories.push(newMemory);
+						});
+					}
 				}
 			}, this);
 		}
