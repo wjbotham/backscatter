@@ -33,12 +33,7 @@ export default class World extends Phaser.Scene
 			key: 'World'
 		});
 		this.zoomExponent = 0;
-		this.gameState = new GameState();
-		this.gameState.playerShip = config.playerShip;
-		this.gameState.bodies = [config.playerShip].concat(config.bodies);
-		this.gameState.collisionRules = config.collisionRules;
-		
-		this.gameState.worldTime = 1;
+		this.gameState = new GameState(config);
 	}
 	
 	create ()

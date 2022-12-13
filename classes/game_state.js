@@ -1,6 +1,13 @@
 export default class GameState {
 	constructor(config) {
-		
+		this.playerShip = config.playerShip;
+		this.bodies = [config.playerShip].concat(config.bodies);
+		this.collisionRules = config.collisionRules;
+		if (config.worldTime) {
+			this.worldTime = config.worldTime;
+		} else {
+			this.worldTime = 1;
+		}
 	}
 	
 	advanceTurn()
