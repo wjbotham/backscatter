@@ -10,13 +10,21 @@ export default class Overlay extends Phaser.Scene
 	}
 	
 	create ()
-	{
+	{		
+		this.debugText = this.add.text(10,10, 'Waiting for click');
+		
+		this.testButton = this.add.text(10,200, 'Button', { fill: '#0f0' });
+		this.testButton.setInteractive();
+		this.testButton.on('pointerover', () => { this.testButton.setFontStyle('bold'); });
+		this.testButton.on('pointerout', () => { this.testButton.setFontStyle(''); });
+		this.testButton.on('pointerdown', () => {
+			eventsCenter.emit('test-button-press');
+		});
+		
 		eventsCenter.on('update-debug-text', this.updateDebugText, this);
 		this.events.on(Phaser.Scenes.Events.SHUTDOWN, () => {
 			eventsCenter.off('update-debug-text', this.updateDebugText, this);
 		});
-		
-		this.debugText = this.add.text(10,10, 'Waiting for click');
 	}
 	
 	updateDebugText (state)

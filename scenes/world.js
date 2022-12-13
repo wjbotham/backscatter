@@ -106,6 +106,11 @@ export default class World extends Phaser.Scene
 					break;
 			}
 		}, this);
+		
+		eventsCenter.on('test-button-press', this.testButtonPress, this);
+		this.events.on(Phaser.Scenes.Events.SHUTDOWN, () => {
+			eventsCenter.off('test-button-press', this.testButtonPress, this);
+		});
 	}
 	
 	advanceTurn()
@@ -115,26 +120,11 @@ export default class World extends Phaser.Scene
 		eventsCenter.emit('update-debug-text', { playerShip: this.gameState.playerShip, worldTime: this.gameState.worldTime });
 	}
 	
-	drawShipGraphic(graphic, alpha, position, velocity, maxAccel)
+	drawBodies()
 	{
-		let destination = { x: position.x + velocity.x, y: position.y + velocity.y };
-		// thrust options
-		graphic.lineStyle(2, 0x888888, alpha);
-		graphic.strokeCircle(destination.x, destination.y, maxAccel);
-
-		// velocity vector
-		graphic.lineStyle(2, 0xFFFFFF, alpha);
-		graphic.beginPath();
-		graphic.moveTo(position.x, position.y);
-		graphic.lineTo(destination.x, destination.y);
-		graphic.closePath();
-		graphic.strokePath();
-		
-		// ship
-		graphic.fillStyle(this.gameState.playerShip.appearance.fillColor, this.gameState.playerShip.appearance.fillAlpha * alpha);
-		graphic.lineStyle(2, this.gameState.playerShip.appearance.circumColor, this.gameState.playerShip.appearance.circumAlpha * alpha);
-		graphic.fillCircle(position.x, position.y, this.gameState.playerShip.radius);
-		graphic.strokeCircle(position.x, position.y, this.gameState.playerShip.radius);
+		this.gameState.bodies.forEach(function (body) {
+			this.drawBody(body);
+		}, this);
 	}
 	
 	drawBody(body)
@@ -171,18 +161,38 @@ export default class World extends Phaser.Scene
 		body.graphic.strokePath();
 	}
 	
+	drawShipGraphic(graphic, alpha, position, velocity, maxAccel)
+	{
+		let destination = { x: position.x + velocity.x, y: position.y + velocity.y };
+		// thrust options
+		graphic.lineStyle(2, 0x888888, alpha);
+		graphic.strokeCircle(destination.x, destination.y, maxAccel);
+
+		// velocity vector
+		graphic.lineStyle(2, 0xFFFFFF, alpha);
+		graphic.beginPath();
+		graphic.moveTo(position.x, position.y);
+		graphic.lineTo(destination.x, destination.y);
+		graphic.closePath();
+		graphic.strokePath();
+		
+		// ship
+		graphic.fillStyle(this.gameState.playerShip.appearance.fillColor, this.gameState.playerShip.appearance.fillAlpha * alpha);
+		graphic.lineStyle(2, this.gameState.playerShip.appearance.circumColor, this.gameState.playerShip.appearance.circumAlpha * alpha);
+		graphic.fillCircle(position.x, position.y, this.gameState.playerShip.radius);
+		graphic.strokeCircle(position.x, position.y, this.gameState.playerShip.radius);
+	}
+	
+	testButtonPress()
+	{
+		console.log('button press');
+	}
+	
 	updateProjectedShipGraphic(ghost_position, proposedAccel)
 	{
 		this.projectedShipGraphic = this.add.graphics();
 		let ghost_velocity = new Phaser.Geom.Point(ghost_position.x - this.gameState.playerShip.position.x, ghost_position.y - this.gameState.playerShip.position.y);
 		let ghost_fuel = this.gameState.playerShip.fuel-proposedAccel;
 		this.drawShipGraphic(this.projectedShipGraphic, 0.4, ghost_position, ghost_velocity, Math.min(this.gameState.playerShip.maxAccel,ghost_fuel));
-	}
-	
-	drawBodies()
-	{
-		this.gameState.bodies.forEach(function (body) {
-			this.drawBody(body);
-		}, this);
 	}
 }
