@@ -29,7 +29,7 @@ const BEHAVIORS = {
 	RADAR_SCAN: {
 		initiative: INITIATIVE_SCORES.DETECT,
 		action: function radarScanAction(scene) {
-			let newMemories = this.memories.filter(function(memory) { return memory.time == scene.worldTime });
+			let newMemories = this.memories.filter(function(memory) { return memory.time == scene.gameState.worldTime });
 			newMemories.forEach(function(newMemory) {
 				if (newMemory.event == 'PlayerSighting') {
 					this.hunters.forEach(function(hunter) {
@@ -43,7 +43,7 @@ const BEHAVIORS = {
 		initiative: INITIATIVE_SCORES.PLAN,
 		action: function targetAction(scene) {
 			let playerSightingMemories = this.memories.filter(function(memory) {
-				return memory.event == 'PlayerSighting' && memory.time >= scene.worldTime - 10
+				return memory.event == 'PlayerSighting' && memory.time >= scene.gameState.worldTime - 10
 			});
 			if (this.currentTarget && Phaser.Math.Distance.BetweenPoints(this.position,this.currentTarget) < 50) {
 				this.currentTarget = undefined;
@@ -107,8 +107,8 @@ const BEHAVIORS = {
 	ATTACK: {
 		initiative: INITIATIVE_SCORES.ATTACK,
 		action: function attackAction(scene) {
-			if (Phaser.Math.Distance.BetweenPoints(this.position,scene.playerShip.position) < 50) {
-				scene.playerShip.remove = true;
+			if (Phaser.Math.Distance.BetweenPoints(this.position,scene.gameState.playerShip.position) < 50) {
+				scene.gameState.playerShip.remove = true;
 				console.log("kill");
 			}
 		}
@@ -230,14 +230,14 @@ let collisionRules = [
 		subject1Name: 'Radar',
 		subject2Name: 'Player Ship',
 		effect: function(scene, radar, playerShip) {
-			radar.memories.push({ time: scene.worldTime, event: "PlayerSighting", position: playerShip.position, velocity: playerShip.velocity });
+			radar.memories.push({ time: scene.gameState.worldTime, event: "PlayerSighting", position: playerShip.position, velocity: playerShip.velocity });
 		}
 	},
 	{
 		subject1Name: 'Radar',
 		subject2Name: 'Rock',
 		effect: function(scene, radar, rock) {
-			radar.memories.push({ time: scene.worldTime, event: "RockSighting", position: rock.position, velocity: rock.velocity });
+			radar.memories.push({ time: scene.gameState.worldTime, event: "RockSighting", position: rock.position, velocity: rock.velocity });
 		}
 	}
 ];

@@ -1,4 +1,5 @@
 import eventsCenter from '../events_center.js'
+import GameState from '../classes/game_state.js'
 
 function getWorldCoordinates(pointer) {
 	return {
@@ -32,11 +33,12 @@ export default class World extends Phaser.Scene
 			key: 'World'
 		});
 		this.zoomExponent = 0;
-		this.playerShip = config.playerShip;
-		this.bodies = [config.playerShip].concat(config.bodies);
+		this.gameState = new GameState();
+		this.gameState.playerShip = config.playerShip;
+		this.gameState.bodies = [config.playerShip].concat(config.bodies);
 		this.collisionRules = config.collisionRules;
 		
-		this.worldTime = 1;
+		this.gameState.worldTime = 1;
 	}
 	
 	create ()
@@ -48,33 +50,33 @@ export default class World extends Phaser.Scene
 		this.input.on('pointerup', function (pointer) {
 			let target = getWorldCoordinates(pointer);
 			
-			let maxLength = Math.min(this.playerShip.maxAccel,this.playerShip.fuel);
-			if (Phaser.Math.Distance.BetweenPoints(this.playerShip.vector, target) < maxLength*2) {
-				target = getClosestPointWithinCircle(this.playerShip.vector, maxLength, target);
+			let maxLength = Math.min(this.gameState.playerShip.maxAccel,this.gameState.playerShip.fuel);
+			if (Phaser.Math.Distance.BetweenPoints(this.gameState.playerShip.vector, target) < maxLength*2) {
+				target = getClosestPointWithinCircle(this.gameState.playerShip.vector, maxLength, target);
 			}
 			
-			var proposedAccel = Phaser.Math.Distance.BetweenPoints(this.playerShip.vector, target);
+			var proposedAccel = Phaser.Math.Distance.BetweenPoints(this.gameState.playerShip.vector, target);
 			if (proposedAccel <= maxLength) {
-				this.playerShip.destination = target;
+				this.gameState.playerShip.destination = target;
 				this.advanceTurn();
 			}
-			eventsCenter.emit('update-debug-text', { target: target, playerShip: this.playerShip, worldTime: this.worldTime });
+			eventsCenter.emit('update-debug-text', { target: target, playerShip: this.gameState.playerShip, worldTime: this.gameState.worldTime });
 		}, this);
 		
 		this.input.on('pointermove', function(pointer) {
 			let target = getWorldCoordinates(pointer);
 			
-			let maxLength = Math.min(this.playerShip.maxAccel,this.playerShip.fuel);
-			if (Phaser.Math.Distance.BetweenPoints(this.playerShip.vector, target) < maxLength*2) {
-				target = getClosestPointWithinCircle(this.playerShip.vector, maxLength, target);
+			let maxLength = Math.min(this.gameState.playerShip.maxAccel,this.gameState.playerShip.fuel);
+			if (Phaser.Math.Distance.BetweenPoints(this.gameState.playerShip.vector, target) < maxLength*2) {
+				target = getClosestPointWithinCircle(this.gameState.playerShip.vector, maxLength, target);
 			}
 			
-			var proposedAccel = Phaser.Math.Distance.BetweenPoints(this.playerShip.vector, target);
+			var proposedAccel = Phaser.Math.Distance.BetweenPoints(this.gameState.playerShip.vector, target);
 			this.projectedShipGraphic.destroy();
 			if (proposedAccel <= maxLength) {
 				this.updateProjectedShipGraphic(target, proposedAccel);
 			}
-			eventsCenter.emit('update-debug-text', { target: target, playerShip: this.playerShip, worldTime: this.worldTime });
+			eventsCenter.emit('update-debug-text', { target: target, playerShip: this.gameState.playerShip, worldTime: this.gameState.worldTime });
 		}, this);
 		
 		this.input.on('wheel', function(pointer, currentlyOver, dx, dy, dz, event) { 
@@ -127,10 +129,10 @@ export default class World extends Phaser.Scene
 		graphic.strokePath();
 		
 		// ship
-		graphic.fillStyle(this.playerShip.appearance.fillColor, this.playerShip.appearance.fillAlpha * alpha);
-		graphic.lineStyle(2, this.playerShip.appearance.circumColor, this.playerShip.appearance.circumAlpha * alpha);
-		graphic.fillCircle(position.x, position.y, this.playerShip.radius);
-		graphic.strokeCircle(position.x, position.y, this.playerShip.radius);
+		graphic.fillStyle(this.gameState.playerShip.appearance.fillColor, this.gameState.playerShip.appearance.fillAlpha * alpha);
+		graphic.lineStyle(2, this.gameState.playerShip.appearance.circumColor, this.gameState.playerShip.appearance.circumAlpha * alpha);
+		graphic.fillCircle(position.x, position.y, this.gameState.playerShip.radius);
+		graphic.strokeCircle(position.x, position.y, this.gameState.playerShip.radius);
 	}
 	
 	drawBody(body)
@@ -140,7 +142,7 @@ export default class World extends Phaser.Scene
 		}
 		body.graphic = this.add.graphics();
 
-		if (body == this.playerShip) {
+		if (body == this.gameState.playerShip) {
 			// thrust options
 			body.graphic.lineStyle(2, 0x888888, body.appearance.circumAlpha);
 			body.graphic.strokeCircle(body.position.x + body.velocity.x, body.position.y + body.velocity.y, Math.min(body.maxAccel,body.fuel));
@@ -170,19 +172,19 @@ export default class World extends Phaser.Scene
 	updateProjectedShipGraphic(ghost_position, proposedAccel)
 	{
 		this.projectedShipGraphic = this.add.graphics();
-		let ghost_velocity = new Phaser.Geom.Point(ghost_position.x - this.playerShip.position.x, ghost_position.y - this.playerShip.position.y);
-		let ghost_fuel = this.playerShip.fuel-proposedAccel;
-		this.drawShipGraphic(this.projectedShipGraphic, 0.4, ghost_position, ghost_velocity, Math.min(this.playerShip.maxAccel,ghost_fuel));
+		let ghost_velocity = new Phaser.Geom.Point(ghost_position.x - this.gameState.playerShip.position.x, ghost_position.y - this.gameState.playerShip.position.y);
+		let ghost_fuel = this.gameState.playerShip.fuel-proposedAccel;
+		this.drawShipGraphic(this.projectedShipGraphic, 0.4, ghost_position, ghost_velocity, Math.min(this.gameState.playerShip.maxAccel,ghost_fuel));
 	}
 	
 	advanceTurn()
 	{
-		/*if (this.playerShip.fuel <= 0) {
+		/*if (this.gameState.playerShip.fuel <= 0) {
 			this.scene.stop('Overlay');
 			this.scene.start('StartScreen');
 		}*/
-		this.worldTime += 1;
-		this.bodies.forEach(function (body) {
+		this.gameState.worldTime += 1;
+		this.gameState.bodies.forEach(function (body) {
 			if (body.destination) {
 				body.spendFuel(Phaser.Math.Distance.BetweenPoints(body.vector, body.destination));
 				body.velocity = new Phaser.Math.Vector2(body.destination.x - body.position.x, body.destination.y - body.position.y);
@@ -197,16 +199,16 @@ export default class World extends Phaser.Scene
 		this.doBehaviors();
 		this.doRemovals();
 		this.drawBodies();
-		eventsCenter.emit('update-debug-text', { playerShip: this.playerShip, worldTime: this.worldTime });
+		eventsCenter.emit('update-debug-text', { playerShip: this.gameState.playerShip, worldTime: this.gameState.worldTime });
 	}
 	
 	doCollisions()
 	{
 		let collisions = [];
-		for (let i = 0; i < this.bodies.length-1; i++) {
-			for (let j = i+1; j < this.bodies.length; j++) {
-				let bodyi = this.bodies[i];
-				let bodyj = this.bodies[j];
+		for (let i = 0; i < this.gameState.bodies.length-1; i++) {
+			for (let j = i+1; j < this.gameState.bodies.length; j++) {
+				let bodyi = this.gameState.bodies[i];
+				let bodyj = this.gameState.bodies[j];
 				let sumRadii = bodyi.radius + bodyj.radius;
 				let distance = Phaser.Math.Distance.BetweenPoints(bodyi.position, bodyj.position);
 				if (distance <= sumRadii) {
@@ -221,7 +223,7 @@ export default class World extends Phaser.Scene
 	{
 		let bodyBehaviorsByInitiative = {};
 		let initiatives = [];
-		this.bodies.forEach(function(body) {
+		this.gameState.bodies.forEach(function(body) {
 			if (body.behaviors) {
 				body.behaviors.forEach(function(behavior) {
 					if (!(behavior.initiative in bodyBehaviorsByInitiative)) {
@@ -246,12 +248,12 @@ export default class World extends Phaser.Scene
 	
 	doRemovals()
 	{
-		this.bodies.forEach(function(body) {
+		this.gameState.bodies.forEach(function(body) {
 			if (body.remove) {
 				body.graphic.destroy();
 			}
 		});
-		this.bodies = this.bodies.filter(body => !body.remove);
+		this.gameState.bodies = this.gameState.bodies.filter(body => !body.remove);
 	}
 	
 	handleCollision(body1,body2)
@@ -274,7 +276,7 @@ export default class World extends Phaser.Scene
 	
 	drawBodies()
 	{
-		this.bodies.forEach(function (body) {
+		this.gameState.bodies.forEach(function (body) {
 			this.drawBody(body);
 		}, this);
 	}
