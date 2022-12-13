@@ -90,8 +90,8 @@ export default class GameState {
 	fireJammer()
 	{
 		this.bodies.forEach(function(body) {
-			if (Phaser.Math.Distance.BetweenPoints(body.position, this.playerShip.position) < 200) {
-				if (body.name == 'Radar') {
+			if (body.name != 'Player Ship' && body.name != 'Rock') {
+				if (Phaser.Math.Distance.BetweenPoints(body.position, this.playerShip.position) < 200) {
 					console.log('object jammed: ' + body.name);
 					body.jammed = true;
 				}

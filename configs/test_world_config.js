@@ -52,13 +52,16 @@ const BEHAVIORS = {
 			let newMemories = this.memories.filter(function(memory) { return memory.time == gameState.worldTime });
 			newMemories.forEach(function(newMemory) {
 				if (newMemory.event == 'PlayerSighting') {
-					if (this.jammed) {
-						console.log(this.name + ' tries to alert but is jammed');
-					} else {
-						this.hunters.forEach(function(hunter) {
+					this.hunters.forEach(function(hunter) {
+						if (this.jammed) {
+							console.log(this.name + ' tries to alert but is jammed');
+						} else if (hunter.jammed) {
+							console.log(this.name + ' tries to alert but ' + hunter.name + ' is jammed');
+						} else {
+							console.log(this.name + ' alerts ' + hunter.name);
 							hunter.memories.push(newMemory);
-						});
-					}
+						}
+					}, this);
 				}
 			}, this);
 		}
