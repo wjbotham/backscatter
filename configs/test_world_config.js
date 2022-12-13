@@ -1,5 +1,4 @@
 import Ship from '../classes/ship.js';
-import Attachment from '../classes/attachment.js';
 import Body from '../classes/body.js';
 
 let playerShip = new Ship({
@@ -20,6 +19,7 @@ let playerShip = new Ship({
 
 const INITIATIVE_SCORES = {
 	DETECT: 10,
+	COMMUNICATE: 20,
 	PLAN: 40,
 	MOVE: 50,
 	ATTACK: 70
@@ -29,6 +29,26 @@ const BEHAVIORS = {
 	RADAR_SCAN: {
 		initiative: INITIATIVE_SCORES.DETECT,
 		action: function radarScanAction(gameState) {
+			gameState.bodies.forEach(function (body) {
+				if (body.name == 'Player Ship') {
+					console.log(Phaser.Math.Distance.BetweenPoints(body.position, this.position) + ' out of ' + (this.radarRange + body.radius));
+				}
+				if (Phaser.Math.Distance.BetweenPoints(body.position, this.position) <= this.radarRange + body.radius) {
+					if (body.name == 'Player Ship') {
+						this.memories.push({
+							time: gameState.worldTime,
+							event: 'PlayerSighting',
+							position: body.position,
+							velocity: body.velocity
+						});
+					}
+				}
+			}, this);
+		}
+	},
+	COMMUNICATE: {
+		initiative: INITIATIVE_SCORES.COMMUNICATE,
+		action: function communicateAction(gameState) {
 			let newMemories = this.memories.filter(function(memory) { return memory.time == gameState.worldTime });
 			newMemories.forEach(function(newMemory) {
 				if (newMemory.event == 'PlayerSighting') {
@@ -145,13 +165,14 @@ function makeRadar() {
 		velocity: new Phaser.Geom.Point(0,0),
 		name: 'Radar',
 		appearance: {
-			circumColor: 0xA020F0,
-			circumAlpha: 0.7,
-			fillColor: 0xA020F0,
-			fillAlpha: 0.2
+			circumColor: 0xCC0000,
+			circumAlpha: 1,
+			fillColor: 0xAA0000,
+			fillAlpha: 1
 		},
-		radius: 100,
-		behaviors: [BEHAVIORS.RADAR_SCAN]
+		radius: 10,
+		radarRange: 100,
+		behaviors: [BEHAVIORS.RADAR_SCAN, BEHAVIORS.COMMUNICATE]
 	};
 	let body = new Body(params);
 	body.memories = [];
@@ -172,32 +193,15 @@ function makeHunter(radar) {
 			fillAlpha: 1
 		},
 		radius: 5,
+		radarRange: 100,
 		maxAccel: 60,
-		behaviors: [BEHAVIORS.TARGET, BEHAVIORS.CHASE, BEHAVIORS.ATTACK]
+		behaviors: [BEHAVIORS.RADAR_SCAN, BEHAVIORS.TARGET, BEHAVIORS.CHASE, BEHAVIORS.ATTACK]
 	};
 	let ship = new Ship(params);
 	ship.memories = [];
 	ship.favoriteSpot = new Phaser.Math.Vector2(ship.position.x,ship.position.y);
 	radar.hunters.push(ship);
 	return ship;
-}
-
-function makeOnboardRadar(parentBody) {
-	let attachment = new Attachment({
-		name: 'Radar',
-		appearance: {
-			circumColor: 0xA020F0,
-			circumAlpha: 0.7,
-			fillColor: 0xA020F0,
-			fillAlpha: 0.08
-		},
-		radius: 100,
-		behaviors: [BEHAVIORS.RADAR_SCAN],
-		parentBody: parentBody
-	});
-	attachment.memories = [];
-	attachment.hunters = [parentBody];
-	return attachment;
 }
 
 let bodies = [];
@@ -210,9 +214,7 @@ bodies.push(radar);
 
 for (let i = 0; i < 3; i++) {
 	let hunter = makeHunter(radar);
-	let onboardRadar = makeOnboardRadar(hunter);
 	bodies.push(hunter);
-	bodies.push(onboardRadar);
 }
 
 let collisionRules = [
@@ -228,20 +230,6 @@ let collisionRules = [
 		subject2Name: 'Rock',
 		effect: function(gameState, rock1, rock2) {
 			//console.log('no rock/rock collision logic implemented');
-		}
-	},
-	{
-		subject1Name: 'Radar',
-		subject2Name: 'Player Ship',
-		effect: function(gameState, radar, playerShip) {
-			radar.memories.push({ time: gameState.worldTime, event: "PlayerSighting", position: playerShip.position, velocity: playerShip.velocity });
-		}
-	},
-	{
-		subject1Name: 'Radar',
-		subject2Name: 'Rock',
-		effect: function(gameState, radar, rock) {
-			radar.memories.push({ time: gameState.worldTime, event: "RockSighting", position: rock.position, velocity: rock.velocity });
 		}
 	}
 ];

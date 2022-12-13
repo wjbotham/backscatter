@@ -5,6 +5,7 @@ export default class Body {
 		this.name = config.name;
 		this.appearance = config.appearance;
 		this.radius = config.radius;
+		this.radarRange = config.radarRange;
 		this.behaviors = config.behaviors;
 	}
 	get vector() {

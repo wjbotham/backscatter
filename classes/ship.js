@@ -8,6 +8,7 @@ export default class Ship extends Body {
 			name: config.name,
 			appearance: config.appearance,
 			radius: config.radius,
+			radarRange: config.radarRange,
 			behaviors: config.behaviors
 		});
 		this.maxAccel = config.maxAccel;
