@@ -28,8 +28,8 @@ const INITIATIVE_SCORES = {
 const BEHAVIORS = {
 	RADAR_SCAN: {
 		initiative: INITIATIVE_SCORES.DETECT,
-		action: function radarScanAction(scene) {
-			let newMemories = this.memories.filter(function(memory) { return memory.time == scene.gameState.worldTime });
+		action: function radarScanAction(gameState) {
+			let newMemories = this.memories.filter(function(memory) { return memory.time == gameState.worldTime });
 			newMemories.forEach(function(newMemory) {
 				if (newMemory.event == 'PlayerSighting') {
 					this.hunters.forEach(function(hunter) {
@@ -41,9 +41,9 @@ const BEHAVIORS = {
 	},
 	TARGET: {  
 		initiative: INITIATIVE_SCORES.PLAN,
-		action: function targetAction(scene) {
+		action: function targetAction(gameState) {
 			let playerSightingMemories = this.memories.filter(function(memory) {
-				return memory.event == 'PlayerSighting' && memory.time >= scene.gameState.worldTime - 10
+				return memory.event == 'PlayerSighting' && memory.time >= gameState.worldTime - 10
 			});
 			if (this.currentTarget && Phaser.Math.Distance.BetweenPoints(this.position,this.currentTarget) < 50) {
 				this.currentTarget = undefined;
@@ -61,7 +61,7 @@ const BEHAVIORS = {
 	},
 	CHASE: {
 		initiative: INITIATIVE_SCORES.MOVE,
-		action: function chaseAction(scene) {
+		action: function chaseAction(gameState) {
 			if (this.currentTarget) {
 				let currentDrift = {
 					x: this.position.x + this.velocity.x,
@@ -106,9 +106,9 @@ const BEHAVIORS = {
 	},
 	ATTACK: {
 		initiative: INITIATIVE_SCORES.ATTACK,
-		action: function attackAction(scene) {
-			if (Phaser.Math.Distance.BetweenPoints(this.position,scene.gameState.playerShip.position) < 50) {
-				scene.gameState.playerShip.remove = true;
+		action: function attackAction(gameState) {
+			if (Phaser.Math.Distance.BetweenPoints(this.position,gameState.playerShip.position) < 50) {
+				gameState.playerShip.remove = true;
 				console.log("kill");
 			}
 		}
@@ -215,29 +215,29 @@ let collisionRules = [
 	{
 		subject1Name: 'Player Ship',
 		subject2Name: 'Rock',
-		effect: function(scene, playerShip, rock) {
+		effect: function(gameState, playerShip, rock) {
 			//rock.remove = true;
 		}
 	},
 	{
 		subject1Name: 'Rock',
 		subject2Name: 'Rock',
-		effect: function(scene, rock1, rock2) {
+		effect: function(gameState, rock1, rock2) {
 			//console.log('no rock/rock collision logic implemented');
 		}
 	},
 	{
 		subject1Name: 'Radar',
 		subject2Name: 'Player Ship',
-		effect: function(scene, radar, playerShip) {
-			radar.memories.push({ time: scene.gameState.worldTime, event: "PlayerSighting", position: playerShip.position, velocity: playerShip.velocity });
+		effect: function(gameState, radar, playerShip) {
+			radar.memories.push({ time: gameState.worldTime, event: "PlayerSighting", position: playerShip.position, velocity: playerShip.velocity });
 		}
 	},
 	{
 		subject1Name: 'Radar',
 		subject2Name: 'Rock',
-		effect: function(scene, radar, rock) {
-			radar.memories.push({ time: scene.gameState.worldTime, event: "RockSighting", position: rock.position, velocity: rock.velocity });
+		effect: function(gameState, radar, rock) {
+			radar.memories.push({ time: gameState.worldTime, event: "RockSighting", position: rock.position, velocity: rock.velocity });
 		}
 	}
 ];
