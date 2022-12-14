@@ -14,8 +14,10 @@ export default class Overlay extends Phaser.Scene
 	{		
 		this.debugText = this.add.text(10,10, 'Waiting for click');
 		
-		this.testButton = new Button(this, 10,200, 'Jammer');
+		this.testButton = new Button(this, 10+60, 110, 'Jammer', 'fire-jammer');
+		this.testButton2 = new Button(this, 10+60, 110+40, 'Jammer', 'fire-jammer');
 		this.add.existing(this.testButton);
+		this.add.existing(this.testButton2);
 		
 		eventsCenter.on('update-debug-text', this.updateDebugText, this);
 		this.events.on(Phaser.Scenes.Events.SHUTDOWN, () => {
