@@ -1,4 +1,5 @@
 import eventsCenter from '../events_center.js'
+import Button from '../classes/button.js'
 
 export default class Overlay extends Phaser.Scene
 {
@@ -13,13 +14,8 @@ export default class Overlay extends Phaser.Scene
 	{		
 		this.debugText = this.add.text(10,10, 'Waiting for click');
 		
-		this.testButton = this.add.text(10,200, 'Jammer', { fill: '#0f0', backgroundColor: '#333' });
-		this.testButton.setInteractive();
-		this.testButton.on('pointerover', () => { this.testButton.setFontStyle('bold'); });
-		this.testButton.on('pointerout', () => { this.testButton.setFontStyle(''); });
-		this.testButton.on('pointerup', () => {
-			eventsCenter.emit('fire-jammer');
-		});
+		this.testButton = new Button(this, 10,200, 'Jammer');
+		this.add.existing(this.testButton);
 		
 		eventsCenter.on('update-debug-text', this.updateDebugText, this);
 		this.events.on(Phaser.Scenes.Events.SHUTDOWN, () => {
