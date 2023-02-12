@@ -16,7 +16,6 @@ export default class GameState {
 			this.scene.stop('Overlay');
 			this.scene.start('StartScreen');
 		}*/
-		this.worldTime += 1;
 		this.bodies.forEach(function (body) {
 			if (body.destination) {
 				body.spendFuel(Phaser.Math.Distance.BetweenPoints(body.vector, body.destination));
@@ -24,13 +23,16 @@ export default class GameState {
 				body.position = new Phaser.Geom.Point(body.destination.x, body.destination.y);
 			} else {
 				body.position = new Phaser.Geom.Point(body.vector.x, body.vector.y)
-			}			
+			}
 			body.destination = undefined;
 		}, this);
 		
 		this.doCollisions();
 		this.doBehaviors();
 		this.doRemovals();
+		
+		// increment the counter to next turn
+		this.worldTime += 1;
 	}
 	
 	doBehaviors()

@@ -167,19 +167,12 @@ export default class World extends Phaser.Scene
 			body.graphic.strokeCircle(body.position.x, body.position.y, body.radius + 10);
 		}
 		
-		// radar indicator
+		// radar indicator (for the body's location next turn)
 		if (body.radarRange) {
 			body.graphic.fillStyle(0xA020F0, 0.08);
 			body.graphic.lineStyle(2, 0xA020F0, 0.7);
-			body.graphic.fillCircle(body.position.x, body.position.y, body.radarRange);
-			body.graphic.strokeCircle(body.position.x, body.position.y, body.radarRange);
-			if (body.velocity.x != 0 || body.velocity.y != 0) {
-				// ghost ship
-				body.graphic.fillStyle(0xA020F0, 0.08 * 0.3);
-				body.graphic.lineStyle(2, 0xA020F0, 0.7 * 0.3);
-				body.graphic.fillCircle(body.position.x + body.velocity.x, body.position.y + body.velocity.y, body.radarRange);
-				body.graphic.strokeCircle(body.position.x + body.velocity.x, body.position.y + body.velocity.y, body.radarRange);
-			}
+			body.graphic.fillCircle(body.position.x + body.velocity.x, body.position.y + body.velocity.y, body.radarRange);
+			body.graphic.strokeCircle(body.position.x + body.velocity.x, body.position.y + body.velocity.y, body.radarRange);
 		}
 	}
 	
