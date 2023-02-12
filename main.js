@@ -1,6 +1,6 @@
 import StartScreen from './scenes/start_screen.js';
-import TEST_WORLD_CONFIG from '../configs/test_world_config.js';
-import SQUARE_WORLD_CONFIG from '../configs/square_world_config.js';
+import TEST_WORLD_CONFIG from './configs/test_world_config.js';
+import SQUARE_WORLD_CONFIG from './configs/square_world_config.js';
 
 var worldOptions = [
 	{ 'name': 'Test World', 'config': TEST_WORLD_CONFIG },
