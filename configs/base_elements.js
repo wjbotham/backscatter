@@ -24,8 +24,8 @@ const INITIATIVE_SCORES = {
 	DETECT: 10,
 	COMMUNICATE: 20,
 	PLAN: 40,
-	MOVE: 50,
-	ATTACK: 70
+	THRUST: 50,
+	AIM_ATTACK: 70
 };
 
 const BEHAVIORS = {
@@ -90,7 +90,7 @@ const BEHAVIORS = {
 		}
 	},
 	CHASE: {
-		initiative: INITIATIVE_SCORES.MOVE,
+		initiative: INITIATIVE_SCORES.THRUST,
 		action: function chaseAction(gameState) {
 			if (this.currentTarget) {
 				let currentDrift = {
@@ -135,12 +135,9 @@ const BEHAVIORS = {
 		}
 	},
 	ATTACK: {
-		initiative: INITIATIVE_SCORES.ATTACK,
+		initiative: INITIATIVE_SCORES.AIM_ATTACK,
 		action: function attackAction(gameState) {
-			if (Phaser.Math.Distance.BetweenPoints(this.position,gameState.playerShip.position) < 50) {
-				gameState.playerShip.remove = true;
-				console.log("kill");
-			}
+			// TODO: implement an aim / kill two-turn cycle
 		}
 	}
 };
