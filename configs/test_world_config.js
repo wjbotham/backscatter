@@ -8,9 +8,9 @@ function randomPoint(lowX,highX,lowY,highY) {
 
 let bodies = [];
 for (let i = 0; i < 20; i++) {
-	bodies.push(Base.makeRock(
+	bodies.push(Base.makeSalvage(
 		randomPoint(-200,1200,-200,1200),
-		Phaser.Math.RandomXY({x:0,y:0},Phaser.Math.Between(1,10))
+		{x:0,y:0}
 	));
 }
 

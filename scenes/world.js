@@ -205,11 +205,19 @@ export default class World extends Phaser.Scene
 		this.drawBodies();
 	}
 	
-	updateProjectedShipGraphic(ghost_position, proposedAccel)
+	updateProjectedShipGraphic(ghostPosition, proposedAccel)
 	{
 		this.projectedShipGraphic = this.add.graphics();
-		let ghost_velocity = new Phaser.Geom.Point(ghost_position.x - this.gameState.playerShip.position.x, ghost_position.y - this.gameState.playerShip.position.y);
-		let ghost_fuel = this.gameState.playerShip.fuel-proposedAccel;
-		this.drawShipGraphic(this.projectedShipGraphic, 0.4, ghost_position, ghost_velocity, Math.min(this.gameState.playerShip.maxAccel,ghost_fuel));
+		let ghostVelocity = new Phaser.Geom.Point(ghostPosition.x - this.gameState.playerShip.position.x, ghostPosition.y - this.gameState.playerShip.position.y);
+		let ghostFuel = this.gameState.playerShip.fuel-proposedAccel;
+		this.drawShipGraphic(this.projectedShipGraphic, 0.4, ghostPosition, ghostVelocity, Math.min(this.gameState.playerShip.maxAccel,ghostFuel));
+		
+		this.gameState.bodies.filter(function(body) {
+			return body.name == 'Salvage' && Phaser.Math.Distance.BetweenPoints(body.position, ghostPosition) <= this.gameState.playerShip.salvageCollectionRange;
+		}, this).forEach(function (salvageInRange) {
+			console.log("salvage nearby");
+			this.projectedShipGraphic.lineStyle(2, 0x00FF00, 1);
+			this.projectedShipGraphic.strokeCircle(salvageInRange.position.x, salvageInRange.position.y, salvageInRange.radius + 2);
+		}, this);
 	}
 }

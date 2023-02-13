@@ -15,12 +15,17 @@ export function makePlayerShip(position,velocity) {
 			fillColor: 0x00FF00,
 			fillAlpha: 1
 		},
+		behaviors: [BEHAVIORS.COLLECT_SALVAGE],
 		radius: 5
 	};
-	return new Ship(params);
+	let ship = new Ship(params);
+	ship.salvageAccumulated = 0;
+	ship.salvageCollectionRange = 20;
+	return ship;
 }
 
 const INITIATIVE_SCORES = {
+	COLLIDE: 0,
 	DETECT: 10,
 	COMMUNICATE: 20,
 	PLAN: 40,
@@ -29,6 +34,20 @@ const INITIATIVE_SCORES = {
 };
 
 const BEHAVIORS = {
+	COLLECT_SALVAGE: {
+		initiative: INITIATIVE_SCORES.COLLIDE,
+		action: function collectSalvageAction(gameState) {
+			gameState.bodies.forEach(function (body) {
+				if (body.name == 'Salvage') {
+					console.log(Phaser.Math.Distance.BetweenPoints(body.position, this.position) + ' out of ' + (this.radarRange + body.radius));
+					if (Phaser.Math.Distance.BetweenPoints(body.position, this.position) <= this.salvageCollectionRange) {
+						this.salvageAccumulated += 1;
+						body.remove = true;
+					}
+				}
+			}, this);
+		}
+	},
 	RADAR_SCAN: {
 		initiative: INITIATIVE_SCORES.DETECT,
 		action: function radarScanAction(gameState) {
@@ -154,6 +173,22 @@ export function makeRock(position, velocity) {
 			fillAlpha: 1
 		},
 		radius: Math.min(Phaser.Math.Between(4,40),Phaser.Math.Between(4,40))
+	};
+	return new Body(params);
+}
+
+export function makeSalvage(position, velocity) {
+	let params = {
+		position: position,
+		velocity: velocity,
+		name: 'Salvage',
+		appearance: {
+			circumColor: 0x555555,
+			circumAlpha: 1,
+			fillColor: 0x444444,
+			fillAlpha: 1
+		},
+		radius: 3
 	};
 	return new Body(params);
 }
