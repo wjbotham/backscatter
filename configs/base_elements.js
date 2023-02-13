@@ -107,7 +107,14 @@ const BEHAVIORS = {
 					latestSighting.position.y + latestSighting.velocity.y
 				);
 			} else if (!this.currentTarget) {
-				this.currentTarget = this.favoriteSpot.add(Phaser.Math.RandomXY({x:0,y:0},300));
+				let salvageLocations = gameState.bodies.filter(function(body) {
+					return body.name == 'Salvage';
+				}).map(salvage => salvage.position);
+				if (salvageLocations.length > 0) {
+					this.currentTarget = salvageLocations[Math.floor(Math.random() * salvageLocations.length)];
+				} else {
+					this.currentTarget = this.position;
+				}
 			}
 		}
 	},
@@ -235,7 +242,6 @@ export function makeHunter(position, velocity, radar) {
 	};
 	let ship = new Ship(params);
 	ship.memories = [];
-	ship.favoriteSpot = new Phaser.Math.Vector2(ship.position.x,ship.position.y);
 	radar.hunters.push(ship);
 	return ship;
 }
