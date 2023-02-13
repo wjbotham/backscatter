@@ -24,6 +24,9 @@ export function makePlayerShip(position,velocity) {
 	ship.inSalvageCollectionRangeOf = function inSalvageCollectionRangeOf(salvage) {
 		return Phaser.Math.Distance.BetweenPoints(salvage.position, this.position) <= this.salvageCollectionRange;
 	};
+	ship.energy = 100;
+	ship.maxEnergy = 100;
+	ship.energyGeneration = 1;
 	return ship;
 }
 

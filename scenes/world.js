@@ -200,7 +200,6 @@ export default class World extends Phaser.Scene
 	
 	fireJammer()
 	{
-		console.log('fireJammer()');
 		this.gameState.fireJammer();
 		this.drawBodies();
 	}

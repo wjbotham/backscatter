@@ -1,3 +1,5 @@
+import eventsCenter from '../events_center.js'
+
 export default class GameState {
 	constructor(config) {
 		this.playerShip = config.playerShip;
@@ -27,12 +29,16 @@ export default class GameState {
 			body.destination = undefined;
 		}, this);
 		
+		this.playerShip.energy = Math.max(Math.min(this.playerShip.energy + this.playerShip.energyGeneration, this.playerShip.maxEnergy), 0);
+		
 		this.doCollisions();
 		this.doBehaviors();
 		this.doRemovals();
 		
 		// increment the counter to next turn
 		this.worldTime += 1;
+		
+		eventsCenter.emit('update-energy-bar', { energy: this.playerShip.energy, maxEnergy: this.playerShip.maxEnergy });
 	}
 	
 	doBehaviors()
@@ -91,14 +97,20 @@ export default class GameState {
 	
 	fireJammer()
 	{
-		this.bodies.forEach(function(body) {
-			if (body.name != 'Player Ship' && body.name != 'Rock') {
-				if (Phaser.Math.Distance.BetweenPoints(body.position, this.playerShip.position) < 200) {
-					console.log('object jammed: ' + body.name);
-					body.jammed = true;
+		if (this.playerShip.energy >= 60) {
+			this.playerShip.energy -= 60;
+			eventsCenter.emit('update-energy-bar', { energy: this.playerShip.energy, maxEnergy: this.playerShip.maxEnergy });
+			this.bodies.forEach(function(body) {
+				if (body.name != 'Player Ship' && body.name != 'Rock') {
+					if (Phaser.Math.Distance.BetweenPoints(body.position, this.playerShip.position) < 200) {
+						console.log('object jammed: ' + body.name);
+						body.jammed = true;
+					}
 				}
-			}
-		}, this);
+			}, this);
+		} else {
+			console.log('not enough energy to fire jammer');
+		}
 	}
 	
 	handleCollision(body1,body2)
