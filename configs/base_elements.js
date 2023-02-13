@@ -21,6 +21,9 @@ export function makePlayerShip(position,velocity) {
 	let ship = new Ship(params);
 	ship.salvageAccumulated = 0;
 	ship.salvageCollectionRange = 20;
+	ship.inSalvageCollectionRangeOf = function inSalvageCollectionRangeOf(salvage) {
+		return Phaser.Math.Distance.BetweenPoints(salvage.position, this.position) <= this.salvageCollectionRange;
+	};
 	return ship;
 }
 
@@ -40,7 +43,7 @@ const BEHAVIORS = {
 			gameState.bodies.forEach(function (body) {
 				if (body.name == 'Salvage') {
 					console.log(Phaser.Math.Distance.BetweenPoints(body.position, this.position) + ' out of ' + (this.radarRange + body.radius));
-					if (Phaser.Math.Distance.BetweenPoints(body.position, this.position) <= this.salvageCollectionRange) {
+					if (this.inSalvageCollectionRangeOf(body)) {
 						this.salvageAccumulated += 1;
 						body.remove = true;
 					}
