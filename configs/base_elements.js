@@ -61,7 +61,7 @@ const BEHAVIORS = {
 				if (body.name == 'Player Ship') {
 					console.log(Phaser.Math.Distance.BetweenPoints(body.position, this.position) + ' out of ' + (this.radarRange + body.radius));
 				}
-				if (Phaser.Math.Distance.BetweenPoints(body.position, this.position) <= this.radarRange + body.radius) {
+				if (this.canDetect(body)) {
 					if (body.name == 'Player Ship') {
 						this.memories.push({
 							time: gameState.worldTime,
