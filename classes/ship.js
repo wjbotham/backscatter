@@ -17,11 +17,4 @@ export default class Ship extends Body {
 	spendFuel(fuelCost) {
 		this.fuel -= fuelCost;
 	}
-	canDetect(body) {
-		let distanceToBody = Phaser.Math.Distance.BetweenPoints(body.position, this.position);
-		if (distanceToBody <= this.radarRange + body.radius) {
-			return true;
-		}
-		return false;
-	}
 }

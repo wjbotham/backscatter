@@ -169,10 +169,22 @@ export default class World extends Phaser.Scene
 		
 		// radar indicator (for the body's location next turn)
 		if (body.radarRange) {
+			let ghostPosX = body.position.x + body.velocity.x;
+			let ghostPosY = body.position.y + body.velocity.y;
 			body.graphic.fillStyle(0xA020F0, 0.08);
 			body.graphic.lineStyle(2, 0xA020F0, 0.7);
-			body.graphic.fillCircle(body.position.x + body.velocity.x, body.position.y + body.velocity.y, body.radarRange);
-			body.graphic.strokeCircle(body.position.x + body.velocity.x, body.position.y + body.velocity.y, body.radarRange);
+			if (body.radarAngle && body.radarAngle < 2*Math.PI) {
+				console.log(body.radarAngle);
+				console.log(body.radarDirection);
+				//body.graphic.beginPath();
+				body.graphic.arc(ghostPosX, ghostPosY, body.radarRange, body.radarDirection - body.radarAngle/2, body.radarDirection + body.radarAngle/2);
+				body.graphic.closePath();
+				body.graphic.fillPath();
+				body.graphic.strokePath();
+			} else {
+				body.graphic.fillCircle(ghostPosX, ghostPosY, body.radarRange);
+				body.graphic.strokeCircle(ghostPosX, ghostPosY, body.radarRange);
+			}
 		}
 	}
 	

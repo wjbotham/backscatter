@@ -61,8 +61,8 @@ const BEHAVIORS = {
 				if (body.name == 'Player Ship') {
 					console.log(Phaser.Math.Distance.BetweenPoints(body.position, this.position) + ' out of ' + (this.radarRange + body.radius));
 				}
-				if (this.canDetect(body)) {
-					if (body.name == 'Player Ship') {
+				if (body.name == 'Player Ship') {
+					if (this.canDetect(body)) {
 						this.memories.push({
 							time: gameState.worldTime,
 							event: 'PlayerSighting',
@@ -72,6 +72,12 @@ const BEHAVIORS = {
 					}
 				}
 			}, this);
+		}
+	},
+	DIRECTIONAL_RADAR_SEARCH: {
+		initiative: INITIATIVE_SCORES.THRUST,
+		action: function directionalRadarSearch(gameState) {
+			this.radarDirection = Phaser.Math.Angle.Random();
 		}
 	},
 	COMMUNICATE: {
@@ -225,6 +231,16 @@ export function makeRadar(position, velocity) {
 	body.memories = [];
 	body.hunters = [];
 	return body;
+}
+
+export function makeDirectionalRadar(position, velocity) {
+	let radar = makeRadar(position, velocity);
+	radar.name = "Directional Radar";
+	radar.radarRange = 600;
+	radar.radarDirection = Math.PI/2;
+	radar.radarAngle = Math.PI/3;
+	radar.behaviors.push(BEHAVIORS.DIRECTIONAL_RADAR_SEARCH);
+	return radar;
 }
 
 export function makeHunter(position, velocity, radar) {
