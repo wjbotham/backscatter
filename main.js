@@ -8,7 +8,7 @@ var worldOptions = [
 ];
 
 var config = {
-	type: Phaser.AUTO,
+	type: Phaser.CANVAS,
 	width: 800,
 	height: 800,
 	backgroundColor: '#000',
