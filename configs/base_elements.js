@@ -73,7 +73,12 @@ const BEHAVIORS = {
 	DIRECTIONAL_RADAR_SEARCH: {
 		initiative: INITIATIVE_SCORES.THRUST,
 		action: function directionalRadarSearch(gameState) {
-			this.radarDirection = Phaser.Math.Angle.Random();
+			if (this.currentTarget) {
+				this.radarDirection = Phaser.Math.Angle.BetweenPoints(this.position, this.currentTarget);
+				this.currentTarget = undefined;
+			} else {
+				this.radarDirection = Phaser.Math.Angle.Random();
+			}
 		}
 	},
 	COMMUNICATE: {
@@ -235,7 +240,7 @@ export function makeDirectionalRadar(position, velocity) {
 	radar.radarRange = 600;
 	radar.radarDirection = Math.PI/2;
 	radar.radarAngle = Math.PI/3;
-	radar.behaviors.push(BEHAVIORS.DIRECTIONAL_RADAR_SEARCH);
+	radar.behaviors.push(BEHAVIORS.DIRECTIONAL_RADAR_SEARCH, BEHAVIORS.TARGET);
 	return radar;
 }
 
