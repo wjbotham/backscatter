@@ -174,8 +174,6 @@ export default class World extends Phaser.Scene
 			body.graphic.fillStyle(0xA020F0, 0.08);
 			body.graphic.lineStyle(2, 0xA020F0, 0.7);
 			if (body.radarAngle && body.radarAngle < 2*Math.PI) {
-				console.log(body.radarAngle);
-				console.log(body.radarDirection);
 				//body.graphic.beginPath();
 				body.graphic.arc(ghostPosX, ghostPosY, body.radarRange, body.radarDirection - body.radarAngle/2, body.radarDirection + body.radarAngle/2);
 				body.graphic.closePath();

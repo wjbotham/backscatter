@@ -56,7 +56,7 @@ export default class GameState {
 				});
 			}
 		}, this);
-		initiatives.sort()
+		initiatives.sort();
 		let body;
 		let behavior;
 		initiatives.forEach(function(initiative) {

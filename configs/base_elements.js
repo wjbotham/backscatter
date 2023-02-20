@@ -45,7 +45,6 @@ const BEHAVIORS = {
 		action: function collectSalvageAction(gameState) {
 			gameState.bodies.forEach(function (body) {
 				if (body.name == 'Salvage') {
-					console.log(Phaser.Math.Distance.BetweenPoints(body.position, this.position) + ' out of ' + (this.radarRange + body.radius));
 					if (this.inSalvageCollectionRangeOf(body)) {
 						this.salvageAccumulated += 1;
 						body.remove = true;
@@ -58,9 +57,6 @@ const BEHAVIORS = {
 		initiative: INITIATIVE_SCORES.DETECT,
 		action: function radarScanAction(gameState) {
 			gameState.bodies.forEach(function (body) {
-				if (body.name == 'Player Ship') {
-					console.log(Phaser.Math.Distance.BetweenPoints(body.position, this.position) + ' out of ' + (this.radarRange + body.radius));
-				}
 				if (body.name == 'Player Ship') {
 					if (this.canDetect(body)) {
 						this.memories.push({
