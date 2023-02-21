@@ -107,9 +107,9 @@ export default class World extends Phaser.Scene
 			}
 		}, this);
 		
-		eventsCenter.on('fire-jammer', this.fireJammer, this);
+		eventsCenter.on('use-jammer', this.toggleJammer, this);
 		this.events.on(Phaser.Scenes.Events.SHUTDOWN, () => {
-			eventsCenter.off('fire-jammer', this.fireJammer, this);
+			eventsCenter.off('use-jammer', this.toggleJammer, this);
 		});
 	}
 	
@@ -208,9 +208,9 @@ export default class World extends Phaser.Scene
 		graphic.strokeCircle(position.x, position.y, this.gameState.playerShip.radius);
 	}
 	
-	fireJammer()
+	toggleJammer()
 	{
-		this.gameState.fireJammer();
+		this.gameState.toggleJammer();
 		this.drawBodies();
 	}
 	
