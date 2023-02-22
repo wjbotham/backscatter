@@ -229,6 +229,7 @@ export function makeRadar(position, velocity) {
 		behaviors: [BEHAVIORS.RADAR_SCAN, BEHAVIORS.COMMUNICATE]
 	};
 	let body = new Body(params);
+	body.jammable = true;
 	body.memories = [];
 	body.hunters = [];
 	return body;
@@ -261,6 +262,7 @@ export function makeHunter(position, velocity, radar) {
 		behaviors: [BEHAVIORS.RADAR_SCAN, BEHAVIORS.TARGET, BEHAVIORS.CHASE, BEHAVIORS.ATTACK]
 	};
 	let ship = new Ship(params);
+	ship.jammable = true;
 	ship.memories = [];
 	radar.hunters.push(ship);
 	return ship;

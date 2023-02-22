@@ -31,24 +31,7 @@ export default class GameState {
 		
 		this.playerShip.energy = Math.max(Math.min(this.playerShip.energy + this.playerShip.energyGeneration, this.playerShip.maxEnergy), 0);
 		
-		this.bodies.forEach(function(body) {
-			body.jammed = false;
-		}, this);
-		if (this.playerShip.jammerEnabled) {
-			this.playerShip.energy -= 25;
-			eventsCenter.emit('update-energy-bar', { energy: this.playerShip.energy, maxEnergy: this.playerShip.maxEnergy });
-			this.bodies.forEach(function(body) {
-				if (body.name != 'Player Ship' && body.name != 'Rock') {
-					if (Phaser.Math.Distance.BetweenPoints(body.position, this.playerShip.position) < 200) {
-						console.log('object jammed: ' + body.name);
-						body.jammed = true;
-					}
-				}
-			}, this);
-			if (this.playerShip.energy < 25) {
-				this.toggleJammer();
-			}
-		}
+		this.updateJams();
 		
 		this.doCollisions();
 		this.doBehaviors();
@@ -58,6 +41,25 @@ export default class GameState {
 		this.worldTime += 1;
 		
 		eventsCenter.emit('update-energy-bar', { energy: this.playerShip.energy, maxEnergy: this.playerShip.maxEnergy });
+	}
+	
+	updateJams()
+	{
+		this.bodies.forEach(function(body) {
+			if (body.jammable) {
+				body.jammed = false;
+				if (this.playerShip.jammerEnabled && Phaser.Math.Distance.BetweenPoints(body.position, this.playerShip.position) < 200) {
+					body.jammed = true;
+				}
+			}
+		}, this);
+		if (this.playerShip.jammerEnabled) {
+			this.playerShip.energy -= 25;
+			eventsCenter.emit('update-energy-bar', { energy: this.playerShip.energy, maxEnergy: this.playerShip.maxEnergy });
+			if (this.playerShip.energy < 25) {
+				this.toggleJammer();
+			}
+		}
 	}
 	
 	doBehaviors()
