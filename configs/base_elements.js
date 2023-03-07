@@ -77,7 +77,8 @@ const BEHAVIORS = {
 				this.radarDirection = Phaser.Math.Angle.BetweenPoints(this.position, this.currentTarget);
 				this.currentTarget = undefined;
 			} else {
-				this.radarDirection = Phaser.Math.Angle.Random();
+				this.radarDirection = Phaser.Math.Angle.Wrap(this.radarDirection + (Math.PI / 5));
+				console.log(this.radarDirection);
 			}
 		}
 	},
@@ -125,6 +126,24 @@ const BEHAVIORS = {
 				} else {
 					this.currentTarget = this.position;
 				}
+			}
+		}
+	},
+	DIRECTIONAL_RADAR_TARGET: {  
+		initiative: INITIATIVE_SCORES.PLAN,
+		action: function targetAction(gameState) {
+			let playerSightingMemories = this.memories.filter(function(memory) {
+				return memory.event == 'PlayerSighting' && memory.time >= gameState.worldTime - 10
+			});
+			if (this.currentTarget && Phaser.Math.Distance.BetweenPoints(this.position,this.currentTarget) < 50) {
+				this.currentTarget = undefined;
+			}
+			if (playerSightingMemories.length > 0) {
+				let latestSighting = playerSightingMemories.sort((a, b) => (-a.time) - (-b.time))[0];
+				this.currentTarget = new Phaser.Geom.Point(
+					latestSighting.position.x + latestSighting.velocity.x,
+					latestSighting.position.y + latestSighting.velocity.y
+				);
 			}
 		}
 	},
@@ -241,7 +260,7 @@ export function makeDirectionalRadar(position, velocity) {
 	radar.radarRange = 600;
 	radar.radarDirection = Math.PI/2;
 	radar.radarAngle = Math.PI/3;
-	radar.behaviors.push(BEHAVIORS.DIRECTIONAL_RADAR_SEARCH, BEHAVIORS.TARGET);
+	radar.behaviors.push(BEHAVIORS.DIRECTIONAL_RADAR_SEARCH, BEHAVIORS.DIRECTIONAL_RADAR_TARGET);
 	return radar;
 }
 
